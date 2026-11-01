@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Help Center{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-gray-900">Help Center</h1>
+        <p class="mt-2 text-sm text-gray-500">Find answers to common questions about using Smart-Elect</p>
+    </div>
+
+    <!-- Topic cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
+            <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+                <i class="fas fa-check-to-slot"></i>
+            </div>
+            <h2 class="text-base font-semibold text-gray-900 mb-4">Voting Guide</h2>
+            <ul class="space-y-4 text-sm">
+                <li>
+                    <p class="font-medium text-gray-900">How to Vote</p>
+                    <p class="text-gray-500 mt-0.5">Open an active election, select your candidate, and confirm your vote.</p>
+                </li>
+                <li>
+                    <p class="font-medium text-gray-900">Vote Security</p>
+                    <p class="text-gray-500 mt-0.5">Your vote is recorded securely and only once per voter.</p>
+                </li>
+                <li>
+                    <p class="font-medium text-gray-900">View Results</p>
+                    <p class="text-gray-500 mt-0.5">Once an election ends, you can view the results from your dashboard.</p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
+            <div class="w-11 h-11 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center mb-4">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h2 class="text-base font-semibold text-gray-900 mb-4">Account Security</h2>
+            <ul class="space-y-4 text-sm">
+                <li>
+                    <p class="font-medium text-gray-900">Face Enrollment</p>
+                    <p class="text-gray-500 mt-0.5">If you enrolled a face during registration, it is stored securely and used only for identity features.</p>
+                </li>
+                <li>
+                    <p class="font-medium text-gray-900">Password Safety</p>
+                    <p class="text-gray-500 mt-0.5">Use a strong password and never share it with anyone.</p>
+                </li>
+                <li>
+                    <p class="font-medium text-gray-900">Account Recovery</p>
+                    <p class="text-gray-500 mt-0.5">Contact the administrators if you need to recover your account.</p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
+            <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+                <i class="fas fa-life-ring"></i>
+            </div>
+            <h2 class="text-base font-semibold text-gray-900 mb-4">Common Issues</h2>
+            <ul class="space-y-4 text-sm">
+                <li>
+                    <p class="font-medium text-gray-900">Cannot Vote</p>
+                    <p class="text-gray-500 mt-0.5">Make sure the election is active, your account is verified, and you haven't already voted.</p>
+                </li>
+                <li>
+                    <p class="font-medium text-gray-900">Camera Not Working</p>
+                    <p class="text-gray-500 mt-0.5">Ensure your browser has camera permission and you are using a supported browser.</p>
+                </li>
+                <li>
+                    <p class="font-medium text-gray-900">Technical Problems</p>
+                    <p class="text-gray-500 mt-0.5">Clear your browser cache or try a different browser if you experience issues.</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Ask a question -->
+    <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Ask a Question</h2>
+        <p class="text-sm text-gray-500 mb-4">If you couldn't find the answer, send your query directly to the admins.</p>
+        <form method="POST" action="{{ url_for('main.submit_query') }}">
+            <label for="queryMessage" class="block text-sm font-medium text-gray-700 mb-1">Your question or query</label>
+            <textarea id="queryMessage" name="message" rows="4" required
+                      class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      placeholder="Type your question or query here..."></textarea>
+            <button type="submit"
+                    class="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md transition">
+                <i class="fas fa-paper-plane"></i> Send to Admin
+            </button>
+        </form>
+    </div>
+
+    <!-- Previous queries -->
+    <div class="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-900">Your Previous Queries</h2>
+        </div>
+        {% if current_user.queries %}
+        <ul class="divide-y divide-gray-100">
+            {% for query in current_user.queries|sort(attribute='created_at', reverse=True) %}
+            <li class="px-5 py-4 hover:bg-gray-50 transition">
+                <div class="flex items-start justify-between gap-4">
+                    <p class="text-sm text-gray-900">{{ query.message }}</p>
+                    <span class="text-xs text-gray-400 whitespace-nowrap">{{ query.created_at.strftime('%b %d, %Y %I:%M %p') }}</span>
+                </div>
+                {% if query.response %}
+                <div class="mt-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+                    <p class="text-xs font-semibold text-blue-700 mb-1">
+                        <i class="fas fa-reply mr-1"></i> Admin response
+                        {% if query.responded_at %}<span class="font-normal text-blue-500">&middot; {{ query.responded_at.strftime('%b %d, %Y %I:%M %p') }}</span>{% endif %}
+                    </p>
+                    <p class="text-sm text-blue-900">{{ query.response }}</p>
+                </div>
+                {% else %}
+                <p class="mt-2 text-xs text-amber-600">
+                    <i class="fas fa-hourglass-half mr-1"></i> No response yet
+                </p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="px-5 py-10 text-center">
+            <i class="fas fa-comments text-3xl text-gray-300 mb-3"></i>
+            <p class="text-sm text-gray-500">You have not submitted any queries yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

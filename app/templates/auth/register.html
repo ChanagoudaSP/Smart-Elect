@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-2xl space-y-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900">Create your account</h2>
+            <p class="mt-2 text-sm text-gray-600">Join Smart-Elect today</p>
+        </div>
+
+        <div class="bg-white py-8 px-6 shadow rounded-lg sm:px-10">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-4 rounded-md bg-red-50">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-red-400 h-5 w-5"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-red-800">
+                                        {{ message }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form class="mt-8 space-y-6" method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <div class="mt-1">
+                            <input id="first_name" name="first_name" type="text" autocomplete="given-name" required
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <div class="mt-1">
+                            <input id="last_name" name="last_name" type="text" autocomplete="family-name" required
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                    <div class="mt-1">
+                        <input id="email" name="email" type="email" autocomplete="email" required
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">We'll never share your email with anyone else.</p>
+                </div>
+
+                <div>
+                    <label for="national_id" class="block text-sm font-medium text-gray-700">National ID <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <div class="mt-1">
+                        <input id="national_id" name="national_id" type="text"
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Your unique national identification number (leave blank if you don't have one).</p>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-md">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 pt-0.5">
+                            <i class="fas fa-camera text-blue-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-blue-800">Face Registration</h4>
+                            <ul class="mt-2 text-xs text-blue-700 list-disc list-inside space-y-1">
+                                <li>Make sure you are in a well-lit area</li>
+                                <li>Look directly at the camera</li>
+                                <li>Remove any face coverings</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <div class="relative inline-block">
+                            <video id="video" class="mb-3 rounded-lg border border-gray-200 hidden"></video>
+                            <canvas id="canvas" class="hidden"></canvas>
+                            <img id="capturedImage" class="hidden max-w-[320px] mb-3 rounded-lg">
+                            <div id="faceOverlay" class="hidden absolute top-0 left-1/2 transform -translate-x-1/2 border-2 border-red-500 rounded-lg"></div>
+                        </div>
+                        
+                        <input type="hidden" name="face_data" id="face_data">
+                        
+                        <div id="faceDetectionStatus" class="hidden p-2 mb-2 text-sm text-yellow-700 bg-yellow-100 rounded-md">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Waiting for face detection...
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <button type="button" id="startCamera" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                <i class="fas fa-camera mr-2"></i> Start Camera
+                            </button>
+                            <button type="button" id="capturePhoto" class="hidden w-full justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <i class="fas fa-camera-retro mr-2"></i> Capture Photo
+                            </button>
+                            <button type="button" id="retakePhoto" class="hidden w-full justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                <i class="fas fa-redo mr-2"></i> Retake Photo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <div class="mt-1">
+                            <input id="password" name="password" type="password" required
+                                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                                title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters"
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Must contain at least one number, one uppercase and lowercase letter, and at least 8 characters.</p>
+                    </div>
+
+                    <div>
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                        <div class="mt-1">
+                            <input id="confirm_password" name="confirm_password" type="password" required
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input id="terms" name="terms" type="checkbox" required
+                            class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="terms" class="font-medium text-gray-700">I agree to the <a href="#" class="text-blue-600 hover:text-blue-500">terms and conditions</a></label>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" id="submitBtn" disabled
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <i class="fas fa-user-plus"></i>
+                        </span>
+                        Create Account
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            Already have an account?
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{{ url_for('auth.login') }}" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Sign in to your account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
+<script>
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('canvas');
+    let captureButton = document.getElementById('capturePhoto');
+    let startButton = document.getElementById('startCamera');
+    let retakeButton = document.getElementById('retakePhoto');
+    let submitBtn = document.getElementById('submitBtn');
+    let capturedImage = document.getElementById('capturedImage');
+    let faceDetectionStatus = document.getElementById('faceDetectionStatus');
+    let faceOverlay = document.getElementById('faceOverlay');
+    let stream = null;
+    let model = null;
+    let detectionInterval = null;
+
+    // Load the face detection model
+    async function loadFaceDetectionModel() {
+        try {
+            model = await blazeface.load();
+            console.log('Face detection model loaded');
+        } catch (err) {
+            console.error('Error loading face detection model:', err);
+            alert('Error loading face detection model. Please refresh the page.');
+        }
+    }
+
+    // Call this when the page loads
+    loadFaceDetectionModel();
+
+    // Function to detect faces in video stream
+    async function detectFaces() {
+        if (!model || !video.videoWidth) return;
+        
+        try {
+            const predictions = await model.estimateFaces(video, false);
+            
+            if (predictions.length > 0) {
+                const face = predictions[0];
+                faceDetectionStatus.className = 'p-2 mb-2 text-sm text-green-700 bg-green-100 rounded-md';
+                faceDetectionStatus.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Face detected! You can capture the photo now.';
+                captureButton.disabled = false;
+
+                // Update face overlay position
+                const topLeft = face.topLeft;
+                const bottomRight = face.bottomRight;
+                const width = bottomRight[0] - topLeft[0];
+                const height = bottomRight[1] - topLeft[1];
+
+                faceOverlay.classList.remove('hidden');
+                faceOverlay.style.width = width + 'px';
+                faceOverlay.style.height = height + 'px';
+                faceOverlay.style.top = topLeft[1] + 'px';
+                faceOverlay.style.left = (video.offsetLeft + topLeft[0]) + 'px';
+            } else {
+                faceDetectionStatus.className = 'p-2 mb-2 text-sm text-yellow-700 bg-yellow-100 rounded-md';
+                faceDetectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> No face detected. Please position your face in the camera.';
+                captureButton.disabled = true;
+                faceOverlay.classList.add('hidden');
+            }
+        } catch (err) {
+            console.error('Error during face detection:', err);
+            faceDetectionStatus.className = 'p-2 mb-2 text-sm text-red-700 bg-red-100 rounded-md';
+            faceDetectionStatus.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Error during face detection. Please try again.';
+        }
+    }
+
+    startButton.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: "user"
+                } 
+            });
+            video.srcObject = stream;
+            await video.play();
+            
+            // Show video and capture button, hide start button
+            video.classList.remove('hidden');
+            captureButton.classList.remove('hidden');
+            startButton.classList.add('hidden');
+            faceDetectionStatus.classList.remove('hidden');
+            
+            // Reset any previous capture
+            capturedImage.classList.add('hidden');
+            retakeButton.classList.add('hidden');
+            
+            // Start face detection
+            detectionInterval = setInterval(detectFaces, 100);
+        } catch (err) {
+            console.error('Error accessing camera:', err);
+            faceDetectionStatus.className = 'p-2 mb-2 text-sm text-red-700 bg-red-100 rounded-md';
+            faceDetectionStatus.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Error accessing camera. Please make sure you have granted camera permissions.';
+            faceDetectionStatus.classList.remove('hidden');
+        }
+    });
+
+    captureButton.addEventListener('click', async () => {
+        // Verify face is detected one last time before capture
+        const predictions = await model.estimateFaces(video, false);
+        if (predictions.length === 0) {
+            faceDetectionStatus.className = 'p-2 mb-2 text-sm text-yellow-700 bg-yellow-100 rounded-md';
+            faceDetectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> No face detected. Please position your face properly in the camera.';
+            return;
+        }
+
+        clearInterval(detectionInterval);
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        let imageData = canvas.toDataURL('image/jpeg', 1.0);
+        document.getElementById('face_data').value = imageData;
+        
+        // Stop the video stream and hide video element
+        stream.getTracks().forEach(track => track.stop());
+        video.classList.add('hidden');
+        captureButton.classList.add('hidden');
+        faceDetectionStatus.classList.add('hidden');
+        faceOverlay.classList.add('hidden');
+        
+        // Show the captured image and retake button
+        capturedImage.src = imageData;
+        capturedImage.classList.remove('hidden');
+        retakeButton.classList.remove('hidden');
+        submitBtn.disabled = false;
+    });
+
+    retakeButton.addEventListener('click', () => {
+        // Hide captured image and retake button, show start button
+        capturedImage.classList.add('hidden');
+        retakeButton.classList.add('hidden');
+        startButton.classList.remove('hidden');
+        
+        // Reset form state
+        submitBtn.disabled = true;
+        document.getElementById('face_data').value = '';
+        faceDetectionStatus.classList.add('hidden');
+        faceOverlay.classList.add('hidden');
+        
+        // Clear any existing stream
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    });
+
+    // Form validation
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        if (!document.getElementById('face_data').value) {
+            e.preventDefault();
+            alert('Please capture your photo before submitting the registration form.');
+        }
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

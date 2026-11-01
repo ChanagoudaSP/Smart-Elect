@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}User Queries{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{{ url_for('admin.dashboard') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            <i class="fas fa-arrow-left mr-1"></i> Admin Dashboard
+        </a>
+        <h1 class="mt-1 text-3xl font-bold text-gray-900">User Queries</h1>
+        <p class="mt-1 text-sm text-gray-500">
+            {{ queries|length }} quer{{ 'ies' if queries|length != 1 else 'y' }} &middot;
+            {{ queries|selectattr('response', 'equalto', none)|list|length }} awaiting response
+        </p>
+    </div>
+
+    {% if queries %}
+    <div class="space-y-4">
+        {% for query in queries %}
+        <div class="rounded-2xl bg-white shadow-sm border {% if not query.response %}border-amber-200{% else %}border-gray-100{% endif %} p-5">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center text-xs font-bold">
+                        {{ query.user.first_name[0]|upper }}{{ query.user.last_name[0]|upper }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900">{{ query.user.first_name }} {{ query.user.last_name }}</p>
+                        <p class="text-xs text-gray-500">{{ query.user.email }}</p>
+                    </div>
+                </div>
+                <span class="text-xs text-gray-400 whitespace-nowrap">{{ query.created_at.strftime('%b %d, %Y %I:%M %p') }}</span>
+            </div>
+
+            <p class="mt-4 text-sm text-gray-800">{{ query.message }}</p>
+
+            {% if query.response %}
+            <div class="mt-4 rounded-xl bg-green-50 border border-green-100 px-4 py-3">
+                <p class="text-xs font-semibold text-green-700 mb-1">
+                    <i class="fas fa-reply mr-1"></i> Your response
+                    {% if query.responded_at %}<span class="font-normal text-green-600">&middot; {{ query.responded_at.strftime('%b %d, %Y %I:%M %p') }}</span>{% endif %}
+                </p>
+                <p class="text-sm text-green-900">{{ query.response }}</p>
+            </div>
+            {% else %}
+            <form method="POST" action="{{ url_for('admin.respond_query', query_id=query.id) }}" class="mt-4 flex flex-col sm:flex-row gap-2">
+                <input type="text" name="response" required
+                       class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       placeholder="Type your response...">
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md transition">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="rounded-2xl bg-white shadow-sm border border-gray-100 px-5 py-16 text-center">
+        <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">No queries yet</h2>
+        <p class="text-sm text-gray-500">Queries submitted from the Help Center will appear here.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

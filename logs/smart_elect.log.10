@@ -1,0 +1,13 @@
+2026-10-31 00:36:48,819 INFO: Face recognition system initialized successfully [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/utils/face_recognition.py:52]
+2026-10-31 00:36:50,461 INFO: Smart-Elect startup [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/__init__.py:53]
+2026-10-31 00:36:50,461 - INFO - Smart-Elect startup
+2026-10-31 00:36:50,691 INFO: Initializing face recognition system... [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/utils/face_recognition.py:28]
+2026-10-31 00:36:50,691 - INFO - Initializing face recognition system...
+2026-10-31 00:36:50,720 INFO: Face recognition system initialized successfully [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/utils/face_recognition.py:52]
+2026-10-31 00:36:50,720 - INFO - Face recognition system initialized successfully
+2026-10-31 00:37:05,508 INFO: Smart-Elect startup [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/__init__.py:53]
+2026-10-31 00:37:05,718 INFO: Initializing face recognition system... [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/utils/face_recognition.py:28]
+2026-10-31 00:37:05,749 INFO: Face recognition system initialized successfully [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/utils/face_recognition.py:52]
+2026-10-31 00:38:21,452 INFO: Smart-Elect startup [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/__init__.py:53]
+2026-10-31 00:38:21,671 INFO: Initializing face recognition system... [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/utils/face_recognition.py:28]
+2026-10-31 00:38:21,700 INFO: Face recognition system initialized successfully [in /home/dhanaraj/codeSpace/kkk/smartElectFinal/Smart-Elect/app/utils/face_recognition.py:52]

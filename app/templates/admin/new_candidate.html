@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Add Candidate{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="mb-6">
+        <a href="{{ url_for('admin.manage_candidates', election_id=election.id) }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            <i class="fas fa-arrow-left mr-1"></i> {{ election.title }} Candidates
+        </a>
+        <h1 class="mt-1 text-3xl font-bold text-gray-900">Add Candidate</h1>
+        <p class="mt-1 text-sm text-gray-500">Adding a candidate to <span class="font-medium text-gray-700">{{ election.title }}</span></p>
+    </div>
+
+    <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
+        <form method="POST" enctype="multipart/form-data" class="space-y-5">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Candidate Name</label>
+                <input type="text" id="name" name="name" required
+                       class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       placeholder="Full name">
+            </div>
+
+            <div>
+                <label for="party" class="block text-sm font-medium text-gray-700 mb-1">Political Party</label>
+                <input type="text" id="party" name="party" required
+                       class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                       placeholder="Party name">
+            </div>
+
+            <div>
+                <label for="bio" class="block text-sm font-medium text-gray-700 mb-1">Biography</label>
+                <textarea id="bio" name="bio" rows="4" required
+                          class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          placeholder="A short background about the candidate"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Photo <span class="text-gray-400 font-normal">(optional)</span></label>
+                <label for="photo"
+                       class="flex flex-col items-center justify-center w-full h-36 rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition">
+                    <i class="fas fa-cloud-arrow-up text-2xl text-gray-400 mb-2"></i>
+                    <span class="text-sm text-gray-500">Click to upload a clear photo</span>
+                    <input type="file" id="photo" name="photo" accept="image/*" class="hidden">
+                </label>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button type="submit"
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md transition">
+                    <i class="fas fa-plus"></i> Add Candidate
+                </button>
+                <a href="{{ url_for('admin.manage_candidates', election_id=election.id) }}"
+                   class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('photo').addEventListener('change', function() {
+    const label = this.closest('label');
+    if (this.files && this.files[0]) {
+        label.querySelector('span').textContent = this.files[0].name;
+    }
+});
+</script>
+{% endblock %}

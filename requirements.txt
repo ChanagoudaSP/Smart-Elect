@@ -1,0 +1,17 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.2
+Flask-WTF==1.1.1
+Flask-Mail==0.10.0
+Werkzeug==2.3.7
+PyMySQL==1.1.1
+python-dotenv==1.0.0
+cryptography==41.0.7
+Pillow>=11.2.1
+email-validator==2.0.0.post2
+WTForms==3.0.1
+numpy==1.26.4
+opencv-contrib-python-headless==4.10.0.84
+typing-extensions==4.7.1
+python-dateutil==2.8.2
+pytz==2023.3

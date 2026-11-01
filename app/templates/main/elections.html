@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Elections{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Elections</h1>
+        <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500">
+            Participate in active elections and view past election results
+        </p>
+    </div>
+
+    <!-- Active Elections Section -->
+    <div class="mb-12">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 sm:px-6 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-t-lg">
+                <h2 class="text-lg font-medium text-white">Active Elections</h2>
+            </div>
+            
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                {% if elections %}
+                    <div class="space-y-4">
+                        {% for election in elections %}
+                            {% set user_vote = false %}
+                            {% if election.votes %}
+                                {% for vote in election.votes %}
+                                    {% if vote.user_id == current_user.id %}
+                                        {% set user_vote = true %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            
+                            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+                                <div class="p-6">
+                                    <div class="md:flex md:items-center md:justify-between">
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-xl font-semibold text-gray-900">{{ election.title }}</h3>
+                                            <p class="mt-1 text-gray-600">
+                                                {{ election.description[:200] }}{% if election.description|length > 200 %}...{% endif %}
+                                            </p>
+                                            <div class="mt-3 flex flex-wrap gap-4 items-center">
+                                                <div class="flex items-center text-sm text-gray-500">
+                                                    <i class="fas fa-clock mr-1.5"></i>
+                                                    <span>Ends: {{ election.end_date.strftime('%b %d, %Y') }} at {{ election.end_date|format_time }}</span>
+                                                </div>
+                                                {% if user_vote %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="fas fa-check-circle mr-1"></i>
+                                                        You have voted
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 md:mt-0 md:ml-4">
+                                            <a href="{{ url_for('main.election_detail', id=election.id) }}" 
+                                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if user_vote %}bg-blue-600 hover:bg-blue-700{% else %}bg-green-600 hover:bg-green-700{% endif %} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150">
+                                                {% if user_vote %}
+                                                    <i class="fas fa-eye mr-2"></i>View Details
+                                                {% else %}
+                                                    <i class="fas fa-vote-yea mr-2"></i>Vote Now
+                                                {% endif %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-calendar-alt text-5xl text-gray-300 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900">No Active Elections</h3>
+                        <p class="mt-1 text-gray-500">Check back later for upcoming elections.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Past Elections Section -->
+    <div>
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 bg-gray-700 rounded-t-lg">
+                <h2 class="text-lg font-medium text-white">Past Elections</h2>
+            </div>
+            
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                {% if past_elections and past_elections|length > 0 %}
+                    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {% for election in past_elections %}
+                            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
+                                <div class="p-6 h-full flex flex-col">
+                                    <div class="flex-1">
+                                        <h3 class="text-lg font-medium text-gray-900">{{ election.title }}</h3>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                                            <i class="far fa-calendar-alt mr-1.5"></i>
+                                            <span>Ended: {{ election.end_date.strftime('%b %d, %Y') }}</span>
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                                            <i class="far fa-clock mr-1.5"></i>
+                                            <span>{{ election.end_date|format_time }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-6">
+                                        <a href="{{ url_for('main.view_results', id=election.id) }}" 
+                                           class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <i class="fas fa-chart-bar mr-2"></i>View Results
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-calendar-times text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">No past elections to display.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('main.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

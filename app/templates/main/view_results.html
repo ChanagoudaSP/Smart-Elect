@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Election Results - {{ election.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-gray-500">
+        <a href="{{ url_for('main.elections') }}" class="text-blue-600 hover:text-blue-800 font-medium">
+            <i class="fas fa-arrow-left mr-1"></i> Elections
+        </a>
+        <span class="mx-2">/</span>
+        <a href="{{ url_for('main.election_detail', id=election.id) }}" class="text-blue-600 hover:text-blue-800 font-medium">{{ election.title }}</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">Results</span>
+    </nav>
+
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">{{ election.title }}</h1>
+        <p class="mt-1 text-sm text-gray-500">Election Results</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Vote distribution -->
+        <div class="lg:col-span-2 rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h2 class="text-lg font-semibold text-gray-900">Vote Distribution</h2>
+            </div>
+            <div class="p-5">
+                {% if total_votes > 0 %}
+                    {% for result in results %}
+                    <div class="mb-5 last:mb-0">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-sm font-semibold text-gray-900">{{ result.candidate.name }}</h3>
+                            <span class="text-sm text-gray-500">{{ result.votes }} votes ({{ result.percentage }}%)</span>
+                        </div>
+                        <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
+                            <div class="result-bar h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-1000"
+                                 style="width: 0%" data-width="{{ result.percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="mt-6 pt-4 border-t border-gray-100 text-center">
+                        <p class="text-sm text-gray-500">Total Votes Cast: <span class="font-semibold text-gray-900">{{ total_votes }}</span></p>
+                    </div>
+                {% else %}
+                    <div class="py-10 text-center">
+                        <i class="fas fa-chart-bar text-4xl text-gray-300 mb-3"></i>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">No Votes Cast</h3>
+                        <p class="text-sm text-gray-500">This election has ended but no votes were cast.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-5">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Election Information</h2>
+                <ul class="space-y-4 text-sm">
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-calendar text-blue-400 mt-0.5"></i>
+                        <div>
+                            <p class="font-medium text-gray-900">Start Date</p>
+                            <p class="text-gray-500">{{ election.start_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-calendar-check text-blue-400 mt-0.5"></i>
+                        <div>
+                            <p class="font-medium text-gray-900">End Date</p>
+                            <p class="text-gray-500">{{ election.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-users text-blue-400 mt-0.5"></i>
+                        <div>
+                            <p class="font-medium text-gray-900">Total Candidates</p>
+                            <p class="text-gray-500">{{ results|length }}</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-chart-pie text-blue-400 mt-0.5"></i>
+                        <div>
+                            <p class="font-medium text-gray-900">Participation</p>
+                            <p class="text-gray-500">{{ total_votes }} votes cast</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            {% if current_user.is_admin %}
+            <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-5">
+                <a href="{{ url_for('admin.download_results', id=election.id, format='csv') }}"
+                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md transition">
+                    <i class="fas fa-download"></i> Download Results (CSV)
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-5">
+                <a href="{{ url_for('main.election_detail', id=election.id) }}"
+                   class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition">
+                    <i class="fas fa-arrow-left"></i> Back to Election
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.result-bar').forEach(bar => {
+        requestAnimationFrame(() => { bar.style.width = bar.dataset.width; });
+    });
+});
+</script>
+{% endblock %}
