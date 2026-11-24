@@ -192,3 +192,20 @@
     });
 </script>
 {% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.result-bar').forEach(function (bar) {
+            var targetWidth = bar.getAttribute('data-width');
+            if (targetWidth) {
+                requestAnimationFrame(function () {
+                    bar.style.width = targetWidth;
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
