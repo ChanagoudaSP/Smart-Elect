@@ -142,7 +142,7 @@
                     <div class="mt-4">
                         <div class="flex justify-between text-xs font-mono mb-1.5">
                             <span class="font-bold text-slate-900 dark:text-white">{{ '%.1f'|format(result.percentage|default(0)) }}%</span>
-                            <span class="text-slate-400">{{ result.votes }} vote{{ 's' if result.votes != 1 }}</span>
+                            <span class="text-slate-400">{{ result.votes }} vote{{ 's' if result.votes != 1 else '' }}</span>
                         </div>
                         <div class="h-2 rounded-full bg-slate-100 dark:bg-[#1e283d] overflow-hidden">
                             <div class="h-full rounded-full bg-emerald-500"

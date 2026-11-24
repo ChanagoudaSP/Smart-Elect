@@ -23,7 +23,7 @@
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
                 Total ballots cast: <strong class="text-slate-900 dark:text-white font-mono">{{ total_votes }}</strong>
                 &middot;
-                Updated <span class="font-mono">{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span>
+                Updated <span class="font-mono">{{ now.strftime('%Y-%m-%d %I:%M %p') if now else election.start_date.strftime('%Y-%m-%d %I:%M %p') }}</span>
             </p>
         </div>
 
@@ -32,7 +32,7 @@
                 <i class="fas fa-arrow-left text-slate-400"></i>
                 <span>Elections</span>
             </a>
-            {% if election.end_date > now %}
+            {% if now and election.end_date > now %}
             <span
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
                 <i class="fas fa-spinner fa-spin text-xs"></i> Preliminary &middot; ends in {{ ((election.end_date -
@@ -73,7 +73,7 @@
                     <div class="flex justify-between text-xs font-mono mb-1.5">
                         <span class="font-bold text-slate-900 dark:text-white">{{
                             '%.1f'|format(result.percentage|default(0)) }}%</span>
-                        <span class="text-slate-400">{{ result.votes }} vote{{ 's' if result.votes != 1 }}</span>
+                        <span class="text-slate-400">{{ result.votes }} vote{{ 's' if result.votes != 1 else '' }}</span>
                     </div>
                     <div class="h-2 rounded-full bg-slate-100 dark:bg-[#1e283d] overflow-hidden">
                         <div class="result-bar h-full rounded-full bg-emerald-500 transition-all duration-1000"
