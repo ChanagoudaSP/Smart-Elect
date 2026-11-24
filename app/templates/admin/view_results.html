@@ -60,6 +60,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-[#1e283d] text-xs">
+                    {% if results %}
                     {% for result in results %}
                     <tr class="hover:bg-slate-50/50 dark:hover:bg-[#192238]/50 transition">
                         <td class="px-6 py-4">
@@ -83,18 +84,20 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-32 h-2 rounded-full bg-slate-100 dark:bg-[#1e283d] overflow-hidden">
-                                    <div class="h-full rounded-full bg-emerald-500 transition-all duration-700"
-                                         style="width: {{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
+                                    <div class="result-bar h-full rounded-full bg-emerald-500 transition-all duration-700"
+                                         style="width: 0%"
+                                         data-width="{{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
                                 </div>
                                 <span class="font-mono text-xs font-bold text-slate-900 dark:text-white">{{ '%.1f'|format(result.percentage|default(0)) }}%</span>
                             </div>
                         </td>
                     </tr>
+                    {% endfor %}
                     {% else %}
                     <tr>
                         <td colspan="5" class="px-6 py-8 text-center text-slate-400">No votes recorded yet for this election.</td>
                     </tr>
-                    {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -145,8 +148,9 @@
                             <span class="text-slate-400">{{ result.votes }} vote{{ 's' if result.votes != 1 else '' }}</span>
                         </div>
                         <div class="h-2 rounded-full bg-slate-100 dark:bg-[#1e283d] overflow-hidden">
-                            <div class="h-full rounded-full bg-emerald-500"
-                                 style="width: {{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
+                            <div class="result-bar h-full rounded-full bg-emerald-500 transition-all duration-700"
+                                 style="width: 0%"
+                                 data-width="{{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
                         </div>
                     </div>
                 </div>
@@ -157,4 +161,20 @@
     {% endif %}
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.result-bar').forEach(function (bar) {
+            var targetWidth = bar.getAttribute('data-width');
+            if (targetWidth) {
+                requestAnimationFrame(function () {
+                    bar.style.width = targetWidth;
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}
