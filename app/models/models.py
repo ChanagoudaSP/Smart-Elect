@@ -230,3 +230,68 @@ class Vote(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'election_id', name='unique_vote'),
     )
+
+
+class AIAlert(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    election_id = db.Column(db.Integer, db.ForeignKey('election.id'), nullable=True)
+    agent_name = db.Column(db.String(100), nullable=False)
+    alert_type = db.Column(db.String(50), nullable=False)
+    severity = db.Column(db.String(20), default='WARNING')  # INFO, WARNING, HIGH, CRITICAL
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    details = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(30), default='PENDING_REVIEW')  # PENDING_REVIEW, RESOLVED, DISMISSED
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+
+    election = db.relationship('Election', backref=db.backref('ai_alerts', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'election_id': self.election_id,
+            'agent_name': self.agent_name,
+            'alert_type': self.alert_type,
+            'severity': self.severity,
+            'title': self.title,
+            'message': self.message,
+            'details': self.details,
+            'status': self.status,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else ''
+        }
+
+
+class AuditLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    action = db.Column(db.String(100), nullable=False)
+    entity_type = db.Column(db.String(50), nullable=True)
+    entity_id = db.Column(db.Integer, nullable=True)
+    details = db.Column(db.Text, nullable=True)
+    ip_address = db.Column(db.String(50), nullable=True)
+    prev_hash = db.Column(db.String(64), nullable=True)
+    entry_hash = db.Column(db.String(64), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('audit_logs', lazy=True))
+
+    def compute_hash(self):
+        import hashlib
+        data = f"{self.user_id}:{self.action}:{self.entity_type}:{self.entity_id}:{self.details}:{self.ip_address}:{self.prev_hash}:{self.created_at}"
+        return hashlib.sha256(data.encode('utf-8')).hexdigest()
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'user_email': self.user.email if self.user else 'System',
+            'action': self.action,
+            'entity_type': self.entity_type,
+            'entity_id': self.entity_id,
+            'details': self.details,
+            'ip_address': self.ip_address,
+            'prev_hash': self.prev_hash,
+            'entry_hash': self.entry_hash,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else ''
+        }

@@ -1,63 +1,58 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-100 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md space-y-8">
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md space-y-6">
         <div class="text-center">
-            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Restore Face Encoding</h2>
-            <p class="mt-2 text-sm text-gray-600">Re-register your face if it is missing from your account.</p>
+            <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Restore Face Encoding</h2>
+            <p class="mt-1 text-xs text-slate-400">Re-register biometric facial features for your voter profile</p>
         </div>
 
-        <div class="bg-white py-8 px-6 shadow rounded-lg sm:px-10">
-            <form class="mt-8 space-y-6" method="POST" action="{{ url_for('auth.restore_face') }}" id="restoreFaceForm">
+        <div class="vireo-card p-6 sm:p-8">
+            <form class="space-y-5" method="POST" action="{{ url_for('auth.restore_face') }}" id="restoreFaceForm">
                 <div>
-                    <label for="emailInput" class="block text-sm font-medium text-gray-700">Email address</label>
-                    <div class="mt-1">
-                        <input id="emailInput" name="email" type="email" value="{{ email or '' }}" required
-                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
+                    <label for="emailInput" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Email address</label>
+                    <input id="emailInput" name="email" type="email" value="{{ email or '' }}" required
+                        class="w-full rounded-xl border border-slate-200 dark:border-[#1e283d] bg-white dark:bg-[#192238] px-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <div class="mt-1">
-                        <input id="password" name="password" type="password" required
-                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
+                    <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Password</label>
+                    <input id="password" name="password" type="password" required
+                        class="w-full rounded-xl border border-slate-200 dark:border-[#1e283d] bg-white dark:bg-[#192238] px-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                 </div>
 
-                <div class="bg-blue-50 p-4 rounded-md">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 pt-0.5">
-                            <i class="fas fa-camera text-blue-400"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h4 class="text-sm font-medium text-blue-800">Face Re-registration</h4>
-                            <p class="mt-2 text-xs text-blue-700">Allow the app to capture your face again from the webcam.</p>
-                        </div>
+                <div class="p-4 rounded-2xl bg-slate-50/60 dark:bg-[#192238]/40 border border-slate-100 dark:border-[#1e283d]">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <i class="fas fa-camera text-emerald-500"></i>
+                        <span>Biometric Re-enrollment</span>
                     </div>
+                    <p class="mt-1 text-[11px] text-slate-400">Capture an updated facial embedding via webcam.</p>
 
                     <div class="mt-4 text-center">
                         <div class="relative inline-block">
-                            <video id="video" class="mb-3 rounded-lg border border-gray-200 hidden"></video>
+                            <video id="video" class="mb-3 rounded-xl border border-slate-200 dark:border-[#1e283d] hidden"></video>
                             <canvas id="canvas" class="hidden"></canvas>
-                            <img id="capturedImage" class="hidden max-w-[320px] mb-3 rounded-lg">
-                            <div id="faceOverlay" class="hidden absolute top-0 left-1/2 transform -translate-x-1/2 border-2 border-red-500 rounded-lg"></div>
+                            <img id="capturedImage" class="hidden max-w-[320px] mb-3 rounded-xl">
+                            <div id="faceOverlay" class="hidden absolute top-0 left-1/2 transform -translate-x-1/2 border-2 border-emerald-500 rounded-xl"></div>
                         </div>
 
-                        <div id="faceDetectionStatus" class="hidden p-2 mb-2 text-yellow-700 bg-yellow-100 rounded-md">
-                            <i class="fas fa-spinner fa-spin mr-2"></i> Waiting for face detection...
+                        <div id="faceDetectionStatus" class="hidden p-2.5 mb-2 text-xs font-mono text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                            <i class="fas fa-spinner fa-spin mr-1.5"></i> Waiting for face detection...
                         </div>
 
                         <div class="space-y-2">
-                            <button type="button" id="startCamera" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                                <i class="fas fa-camera mr-2"></i> Start Camera
+                            <button type="button" id="startCamera" class="btn-vireo-secondary w-full py-2 text-xs flex items-center justify-center gap-1.5">
+                                <i class="fas fa-camera"></i>
+                                <span>Start Camera</span>
                             </button>
-                            <button type="button" id="capturePhoto" class="hidden w-full justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                <i class="fas fa-camera-retro mr-2"></i> Capture Photo
+                            <button type="button" id="capturePhoto" class="hidden btn-vireo-primary w-full py-2 text-xs flex items-center justify-center gap-1.5">
+                                <i class="fas fa-camera-retro"></i>
+                                <span>Capture Photo</span>
                             </button>
-                            <button type="button" id="retakePhoto" class="hidden w-full justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                                <i class="fas fa-redo mr-2"></i> Retake Photo
+                            <button type="button" id="retakePhoto" class="hidden btn-vireo-secondary w-full py-2 text-xs flex items-center justify-center gap-1.5 text-amber-500">
+                                <i class="fas fa-redo"></i>
+                                <span>Retake Photo</span>
                             </button>
                         </div>
                     </div>
@@ -65,18 +60,22 @@
 
                 <div>
                     <button type="submit" id="submitBtn" disabled
-                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                            <i class="fas fa-redo"></i>
-                        </span>
-                        Restore Face Encoding
+                        class="btn-vireo-primary w-full py-2.5 text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-redo"></i>
+                        <span>Restore Face Encoding</span>
                     </button>
                 </div>
             </form>
 
-            <div class="mt-6 text-sm text-center text-gray-500">
-                <a href="{{ url_for('auth.login') }}" class="font-medium text-blue-600 hover:text-blue-500">Back to login</a>
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-[#1e283d] text-center">
+                <a href="{{ url_for('auth.login') }}" class="text-xs font-medium text-emerald-500 hover:text-emerald-400 flex items-center justify-center gap-1.5">
+                    <i class="fas fa-arrow-left text-[10px]"></i>
+                    <span>Back to Sign In</span>
+                </a>
             </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </div>

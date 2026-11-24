@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from app import db, mail
 from flask_mail import Message
-from app.models.models import User, Election, Vote, Candidate
+from app.models.models import User, Election, Vote, Candidate, AIAlert
 from app.models.query import Query
 from app.utils.time_utils import convert_to_24hr, convert_to_12hr, get_date_string
 from datetime import datetime
@@ -110,11 +110,14 @@ def dashboard():
         except Exception as e:
             logger.error(f"Error fetching recent users: {str(e)}")
         
+        pending_alerts_count = AIAlert.query.filter_by(status='PENDING_REVIEW').count()
+        
         return render_template(
             'admin/dashboard.html',
             stats=stats,
             recent_elections=recent_data['elections'],
-            recent_users=recent_data['users']
+            recent_users=recent_data['users'],
+            pending_ai_alerts=pending_alerts_count
         )
         
     except Exception as e:
@@ -343,12 +346,13 @@ def toggle_admin(id):
     if user == current_user:
         flash('You cannot modify your own admin status')
         return redirect(url_for('admin.manage_users'))
-    
+
     user.is_admin = not user.is_admin
     db.session.commit()
     
     flash(f'Admin status updated for {user.email}')
     return redirect(url_for('admin.manage_users'))
+
 
 @bp.route('/user/<int:id>/verify', methods=['POST'])
 @login_required
@@ -521,6 +525,7 @@ def remove_user(id):
     if user == current_user:
         flash('You cannot remove your own account.', 'danger')
         return redirect(url_for('admin.manage_users'))
+
     try:
         db.session.delete(user)
         db.session.commit()
@@ -529,3 +534,32 @@ def remove_user(id):
         logger.error(f"Error removing user {user.email}: {str(e)}")
         flash('An error occurred while removing the user.', 'danger')
     return redirect(url_for('admin.manage_users'))
+
+# Cryptographic Audit Ledger & Traceability Routes (Module 10)
+@bp.route('/audit')
+@login_required
+@admin_required
+def audit_ledger():
+    """Audit & Traceability Ledger Portal (Module 10)"""
+    from app.models.models import AuditLog
+    from app.utils.audit import verify_audit_chain
+    from flask import jsonify
+
+    chain_status = verify_audit_chain()
+    logs = AuditLog.query.order_by(AuditLog.id.desc()).limit(150).all()
+
+    return render_template(
+        'admin/audit_ledger.html',
+        logs=logs,
+        chain_status=chain_status
+    )
+
+@bp.route('/audit/verify', methods=['POST'])
+@login_required
+@admin_required
+def verify_audit():
+    """Verify cryptographic hash-chain across all stored audit entries."""
+    from app.utils.audit import verify_audit_chain
+    from flask import jsonify
+    result = verify_audit_chain()
+    return jsonify(result)

@@ -54,11 +54,12 @@ def create_app(config_class=Config):
     
     with app.app_context():
         # Register blueprints
-        from app.routes import auth, main, admin, notifications
+        from app.routes import auth, main, admin, notifications, ai_agent
         app.register_blueprint(auth.bp)
         app.register_blueprint(main.bp)
         app.register_blueprint(admin.bp)
         app.register_blueprint(notifications.bp)
+        app.register_blueprint(ai_agent.bp)
         
         # Register CLI commands
         from app.cli import create_admin, update_face_encoding, check_face_encodings

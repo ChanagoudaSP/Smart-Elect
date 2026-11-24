@@ -3,193 +3,218 @@
 {% block title %}{{ election.title }}{% endblock title %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm text-gray-500">
-        <a href="{{ url_for('main.elections') }}" class="text-blue-600 hover:text-blue-800 font-medium">
-            <i class="fas fa-arrow-left mr-1"></i> Elections
-        </a>
-        <span class="mx-2">/</span>
-        <span class="text-gray-900 font-medium">{{ election.title }}</span>
-    </nav>
+    <!-- Top Breadcrumb & Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
+                <a href="{{ url_for('main.dashboard') }}" class="hover:text-emerald-500 transition">Voter Portal</a>
+                <span>&gt;</span>
+                <a href="{{ url_for('main.elections') }}" class="hover:text-emerald-500 transition">Elections</a>
+                <span>&gt;</span>
+                <span>Ballot Overview</span>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{{ election.title }}</h1>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Review candidate credentials and cast your certified cryptographically signed ballot.
+            </p>
+        </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="flex items-center gap-3 self-start sm:self-auto">
+            <a href="{{ url_for('main.elections') }}" class="btn-vireo-secondary flex items-center gap-2 text-xs">
+                <i class="fas fa-arrow-left text-slate-400"></i>
+                <span>All Elections</span>
+            </a>
+        </div>
+    </div>
 
-        <!-- Election info -->
-        <div class="lg:col-span-2 rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
-            <div class="flex items-start justify-between gap-4 flex-wrap">
+    <!-- Election Info & Status Card Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Election Description & Meta -->
+        <div class="lg:col-span-2 vireo-card p-6 space-y-6">
+            <div class="flex items-start justify-between gap-4 flex-wrap pb-4 border-b border-slate-100 dark:border-[#1e283d]">
                 <div class="min-w-0">
-                    <h1 class="text-3xl font-bold text-gray-900">{{ election.title }}</h1>
+                    <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block mb-1">Official Ballot</span>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ election.title }}</h2>
                     {% if election.description %}
-                    <p class="mt-2 text-gray-600">{{ election.description }}</p>
+                    <p class="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ election.description }}</p>
                     {% endif %}
                 </div>
+
                 {% set status = election.current_status %}
                 {% if status == 'active' or status.startswith('ending_soon') %}
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700 shrink-0">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Active
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Ballot
                 </span>
                 {% elif status == 'upcoming' or status.startswith('starting_soon') %}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700 shrink-0">Upcoming</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">Upcoming</span>
                 {% elif status == 'ended' %}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600 shrink-0">Ended</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20">Concluded</span>
                 {% else %}
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500 shrink-0">Inactive</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-500/10 text-slate-400">Inactive</span>
                 {% endif %}
             </div>
 
-            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="rounded-xl bg-gray-50 p-4">
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Starts</p>
-                    <p class="text-sm font-semibold text-gray-900">
-                        <i class="fas fa-play text-green-500 mr-1.5"></i>
-                        {{ election.start_date.strftime('%b %d, %Y') }}<br class="hidden sm:block">
-                        <span class="text-gray-600 font-normal">{{ election.start_date|format_time }}</span>
+            <!-- Schedule Meta Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="p-4 rounded-2xl bg-slate-50/60 dark:bg-[#192238]/40 border border-slate-100 dark:border-[#1e283d]">
+                    <span class="text-[11px] text-slate-400 font-mono block mb-1">POLLS OPEN</span>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <i class="fas fa-play text-emerald-500 text-[10px]"></i>
+                        {{ election.start_date.strftime('%b %d, %Y') }}
                     </p>
+                    <span class="text-[11px] text-slate-400 font-mono block mt-0.5">{{ election.start_date|format_time }}</span>
                 </div>
-                <div class="rounded-xl bg-gray-50 p-4">
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Ends</p>
-                    <p class="text-sm font-semibold text-gray-900">
-                        <i class="fas fa-stop text-red-400 mr-1.5"></i>
-                        {{ election.end_date.strftime('%b %d, %Y') }}<br class="hidden sm:block">
-                        <span class="text-gray-600 font-normal">{{ election.end_date|format_time }}</span>
+
+                <div class="p-4 rounded-2xl bg-slate-50/60 dark:bg-[#192238]/40 border border-slate-100 dark:border-[#1e283d]">
+                    <span class="text-[11px] text-slate-400 font-mono block mb-1">POLLS CLOSE</span>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <i class="fas fa-stop text-rose-400 text-[10px]"></i>
+                        {{ election.end_date.strftime('%b %d, %Y') }}
                     </p>
+                    <span class="text-[11px] text-slate-400 font-mono block mt-0.5">{{ election.end_date|format_time }}</span>
                 </div>
-                <div class="rounded-xl bg-gray-50 p-4">
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Candidates</p>
-                    <p class="text-sm font-semibold text-gray-900">
-                        <i class="fas fa-users text-blue-400 mr-1.5"></i>
-                        {{ candidates|length }}
+
+                <div class="p-4 rounded-2xl bg-slate-50/60 dark:bg-[#192238]/40 border border-slate-100 dark:border-[#1e283d]">
+                    <span class="text-[11px] text-slate-400 font-mono block mb-1">CANDIDATES</span>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <i class="fas fa-users text-emerald-500 text-[10px]"></i>
+                        {{ candidates|length }} Registered
                     </p>
                     {% if total_votes is not none %}
-                    <p class="mt-1 text-xs text-gray-500">
-                        <i class="fas fa-check-double mr-1"></i> {{ total_votes }} vote{{ 's' if total_votes != 1 }} cast
-                    </p>
+                    <span class="text-[11px] text-slate-400 font-mono block mt-0.5">{{ total_votes }} votes tallied</span>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Status / call to action -->
-        <div class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
+        <!-- Participation Status Card -->
+        <div class="vireo-card p-6 flex flex-col items-center justify-center text-center space-y-3">
             {% if not election.has_started %}
-                <i class="fas fa-clock text-4xl text-amber-400 mb-4"></i>
-                <h2 class="text-lg font-semibold text-gray-900">Election has not started yet</h2>
-                <p class="mt-1 text-sm text-gray-500">Voting begins {{ election.start_date.strftime('%B %d, %Y') }} at {{ election.start_date|format_time }}</p>
-                {% if (election.start_date - now).total_seconds() < 86400 %}
-                <span class="mt-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Coming up soon</span>
-                {% endif %}
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center text-2xl">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Voting Not Started</h3>
+                <p class="text-xs text-slate-400 max-w-xs">Polls officially open on {{ election.start_date.strftime('%B %d, %Y') }} at {{ election.start_date|format_time }}.</p>
             {% elif election.has_ended %}
-                <i class="fas fa-calendar-times text-4xl text-red-400 mb-4"></i>
-                <h2 class="text-lg font-semibold text-gray-900">Election has ended</h2>
-                <p class="mt-1 text-sm text-gray-500">Ended {{ election.end_date.strftime('%B %d, %Y') }} at {{ election.end_date|format_time }}</p>
-                <a href="{{ url_for('main.view_results', id=election.id) }}"
-                   class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md transition">
-                    <i class="fas fa-chart-bar"></i> View Results
+                <div class="w-14 h-14 rounded-2xl bg-slate-500/10 text-slate-400 border border-slate-500/20 flex items-center justify-center text-2xl">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Voting Concluded</h3>
+                <p class="text-xs text-slate-400 max-w-xs">This election ended on {{ election.end_date.strftime('%B %d, %Y') }}.</p>
+                <a href="{{ url_for('main.view_results', id=election.id) }}" class="btn-vireo-primary text-xs mt-2">
+                    <i class="fas fa-chart-bar text-xs"></i>
+                    <span>View Certified Results</span>
                 </a>
-            {% elif not election.is_active %}
-                <i class="fas fa-ban text-4xl text-red-400 mb-4"></i>
-                <h2 class="text-lg font-semibold text-gray-900">Election is not active</h2>
-                <p class="mt-1 text-sm text-gray-500">This election is currently not accepting votes</p>
             {% elif not current_user.is_verified %}
-                <i class="fas fa-user-clock text-4xl text-amber-400 mb-4"></i>
-                <h2 class="text-lg font-semibold text-gray-900">Verification required</h2>
-                <p class="mt-1 text-sm text-gray-500">Your account must be verified by an admin before you can vote</p>
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center text-2xl">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Verification Required</h3>
+                <p class="text-xs text-slate-400 max-w-xs">Your voter profile is currently pending verification. Please contact system admin.</p>
             {% elif has_voted %}
-                <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
-                <h2 class="text-lg font-semibold text-gray-900">You have already voted</h2>
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-2xl">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Ballot Recorded</h3>
+                <p class="text-xs text-slate-400">Your vote has been cryptographically signed and stored in the immutable audit ledger.</p>
                 {% if your_vote %}
-                <p class="mt-1 text-sm text-gray-600">Your vote: <span class="font-semibold">{{ your_vote.name }}</span></p>
-                {% endif %}
-                {% if election.has_ended %}
-                <a href="{{ url_for('main.view_results', id=election.id) }}"
-                   class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md transition">
-                    <i class="fas fa-chart-bar"></i> View Results
-                </a>
-                {% else %}
-                <p class="mt-3 text-xs text-gray-400">Results will be available when the election ends</p>
+                <div class="mt-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 text-xs font-bold font-mono">
+                    Candidate: {{ your_vote.name }}
+                </div>
                 {% endif %}
             {% elif can_vote %}
-                <i class="fas fa-check-to-slot text-4xl text-blue-500 mb-4"></i>
-                <h2 class="text-lg font-semibold text-gray-900">Cast Your Vote</h2>
-                <p class="mt-1 text-sm text-gray-500">Select a candidate below to vote</p>
-                {% if election.current_status.startswith('ending_soon') %}
-                <span class="mt-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                    <i class="fas fa-hourglass-half mr-1"></i> Ending soon
-                </span>
-                {% endif %}
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-2xl">
+                    <i class="fas fa-check-to-slot"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Eligible to Vote</h3>
+                <p class="text-xs text-slate-400 max-w-xs">Your voter ID is verified. Select your preferred candidate below to cast your ballot.</p>
             {% else %}
-                <i class="fas fa-info-circle text-4xl text-blue-400 mb-4"></i>
-                <h2 class="text-lg font-semibold text-gray-900">{{ status_message or 'Election details' }}</h2>
+                <div class="w-14 h-14 rounded-2xl bg-slate-500/10 text-slate-400 border border-slate-500/20 flex items-center justify-center text-2xl">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ status_message or 'Voting Unavailable' }}</h3>
             {% endif %}
         </div>
+
     </div>
 
-    <!-- Candidates -->
-    <h2 class="text-xl font-bold text-gray-900 mb-4">
-        {% if can_vote and not has_voted %}Cast Your Vote{% else %}Candidates{% endif %}
-    </h2>
-    {% if candidates %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for candidate in candidates %}
-        <div class="rounded-2xl bg-white shadow-sm border {% if your_vote and candidate.id == your_vote.id %}border-green-400 ring-2 ring-green-100{% else %}border-gray-100{% endif %} overflow-hidden flex flex-col hover:shadow-md transition">
-            <div class="p-5 text-center">
-                <div class="relative w-20 h-20 mx-auto mb-3">
-                    <img src="{{ candidate.photo_url }}" alt="{{ candidate.name }}"
-                         class="w-20 h-20 rounded-full object-cover bg-gray-100"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                    <div class="hidden w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white items-center justify-center text-2xl font-bold mx-auto">
-                        {{ candidate.name[0]|upper }}
+    <!-- Candidate List / Voting Interface -->
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+                    {% if can_vote and not has_voted %}Select Candidate to Vote{% else %}Registered Candidates{% endif %}
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Certified candidates nominated for this ballot</p>
+            </div>
+            <span class="text-xs font-mono text-slate-400">{{ candidates|length }} candidates</span>
+        </div>
+
+        {% if candidates %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for candidate in candidates %}
+            <div class="vireo-card overflow-hidden flex flex-col justify-between {% if your_vote and candidate.id == your_vote.id %}border-2 border-emerald-500/60 shadow-lg shadow-emerald-500/5{% endif %}">
+                <div class="p-6 text-center">
+                    <div class="relative w-20 h-20 mx-auto mb-3">
+                        <img src="{{ candidate.photo_url }}" alt="{{ candidate.name }}"
+                             class="w-20 h-20 rounded-2xl object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-[#1e283d]"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="hidden w-20 h-20 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 items-center justify-center text-2xl font-extrabold mx-auto">
+                            {{ candidate.name[0]|upper }}
+                        </div>
+                        {% if your_vote and candidate.id == your_vote.id %}
+                        <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-sm whitespace-nowrap">
+                            <i class="fas fa-check text-[8px]"></i> Your Vote
+                        </span>
+                        {% endif %}
                     </div>
-                    {% if your_vote and candidate.id == your_vote.id %}
-                    <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500 text-white whitespace-nowrap">
-                        <i class="fas fa-check mr-0.5"></i> Your vote
-                    </span>
+
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ candidate.name }}</h3>
+                    <p class="text-xs text-emerald-500 font-medium mt-0.5">{{ candidate.party }}</p>
+                    {% if candidate.bio %}
+                    <p class="mt-3 text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">{{ candidate.bio }}</p>
                     {% endif %}
                 </div>
-                <h3 class="text-base font-semibold text-gray-900">{{ candidate.name }}</h3>
-                <p class="text-sm text-gray-600">{{ candidate.party }}</p>
-                {% if candidate.bio %}
-                <p class="mt-2 text-sm text-gray-500 line-clamp-2">{{ candidate.bio }}</p>
-                {% endif %}
+
+                <div class="p-4 bg-slate-50/60 dark:bg-[#192238]/40 border-t border-slate-100 dark:border-[#1e283d] text-center">
+                    {% if can_vote and not has_voted and candidate.verified %}
+                        <form method="POST" action="{{ url_for('main.cast_vote', election_id=election.id, candidate_id=candidate.id) }}" class="vote-form">
+                            <button type="submit" class="btn-vireo-primary w-full text-xs py-2.5 flex items-center justify-center gap-2">
+                                <i class="fas fa-check-to-slot"></i>
+                                <span>Vote for {{ candidate.name }}</span>
+                            </button>
+                        </form>
+                    {% elif your_vote and candidate.id == your_vote.id %}
+                        <div class="text-center text-xs font-bold text-emerald-500 flex items-center justify-center gap-1.5 py-1">
+                            <i class="fas fa-check-circle"></i>
+                            <span>You cast your ballot for this candidate</span>
+                        </div>
+                    {% elif not candidate.verified %}
+                        <span class="text-xs text-amber-500 font-mono">Nomination Pending Verification</span>
+                    {% elif not current_user.is_verified %}
+                        <span class="text-xs text-amber-500 font-mono">Account Verification Required</span>
+                    {% else %}
+                        <span class="text-xs text-slate-400 font-mono">
+                            {% if has_voted %}Ballot Already Submitted{% else %}Voting Not Open{% endif %}
+                        </span>
+                    {% endif %}
+                </div>
             </div>
-            <div class="mt-auto px-5 py-4 bg-gray-50 border-t border-gray-100">
-                {% if can_vote and not has_voted and candidate.verified %}
-                    <form method="POST" action="{{ url_for('main.cast_vote', election_id=election.id, candidate_id=candidate.id) }}" class="vote-form">
-                        <button type="submit"
-                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-sm transition">
-                            <i class="fas fa-check-to-slot"></i> Vote for {{ candidate.name }}
-                        </button>
-                    </form>
-                {% elif your_vote and candidate.id == your_vote.id %}
-                    <p class="text-center text-sm font-medium text-green-600">
-                        <i class="fas fa-check-circle mr-1"></i> You voted for this candidate
-                    </p>
-                {% elif not candidate.verified %}
-                    <p class="text-center text-xs font-medium text-amber-600">
-                        <i class="fas fa-hourglass-half mr-1"></i> Awaiting verification
-                    </p>
-                {% elif not current_user.is_verified %}
-                    <p class="text-center text-xs font-medium text-amber-600">
-                        <i class="fas fa-user-clock mr-1"></i> Your account needs verification
-                    </p>
-                {% else %}
-                    <p class="text-center text-xs text-gray-400">
-                        {% if has_voted %}Voting closed for you{% else %}Voting not available{% endif %}
-                    </p>
-                {% endif %}
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        {% else %}
+        <div class="vireo-card p-12 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#192238] text-slate-400 flex items-center justify-center text-2xl mx-auto mb-3">
+                <i class="fas fa-users-slash"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">No Candidates Registered</h3>
+            <p class="text-xs text-slate-400 mt-1">Official candidate profiles have not yet been registered for this election.</p>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="rounded-2xl bg-white shadow-sm border border-gray-100 px-5 py-16 text-center">
-        <i class="fas fa-users-slash text-4xl text-gray-300 mb-4"></i>
-        <h2 class="text-lg font-semibold text-gray-900 mb-1">No candidates yet</h2>
-        <p class="text-sm text-gray-500">Candidates have not been registered for this election.</p>
-    </div>
-    {% endif %}
 
 </div>
 {% endblock content %}
@@ -198,13 +223,12 @@
 {{ super() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Disable vote buttons after click to prevent double submission
     document.querySelectorAll('.vote-form').forEach(form => {
         form.addEventListener('submit', function() {
             const button = this.querySelector('button[type="submit"]');
             button.disabled = true;
             button.classList.add('opacity-60', 'cursor-not-allowed');
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Submitting Ballot...';
         });
     });
 });

@@ -307,11 +307,32 @@ def cast_vote(election_id, candidate_id):
         # Commit the transaction
         db.session.commit()
         logger.info(f"Vote recorded successfully - election:{election_id} user:{current_user.id}")
+        
+        # Record tamper-evident cryptographic audit entry (Module 10)
+        from app.utils.audit import record_audit
+        record_audit(
+            action='VOTE_CAST',
+            user_id=current_user.id,
+            entity_type='Election',
+            entity_id=election_id,
+            details=f"Encrypted ballot registered in election #{election_id} ({election.title})",
+            ip_address=request.remote_addr
+        )
+        
         flash("Your vote has been recorded successfully!", "success")
         
     except ValueError as e:
         db.session.rollback()
         logger.warning(f"Vote failed - election:{election_id} user:{current_user.id} - {str(e)}")
+        from app.utils.audit import record_audit
+        record_audit(
+            action='VOTE_BLOCKED',
+            user_id=current_user.id if current_user.is_authenticated else None,
+            entity_type='Election',
+            entity_id=election_id,
+            details=f"Voting attempt blocked: {str(e)}",
+            ip_address=request.remote_addr
+        )
         flash(str(e), "error")
     except Exception as e:
         db.session.rollback()

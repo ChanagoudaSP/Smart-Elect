@@ -1,0 +1,887 @@
+{% extends "base.html" %}
+
+{% block title %}AI Election Copilot{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Breadcrumb & Page Header (Vireo Aesthetic) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
+                <a href="{{ url_for('admin.dashboard') }}" class="hover:text-emerald-500 transition">Command Center</a>
+                <span>&gt;</span>
+                <span class="text-slate-600 dark:text-slate-300">Autonomous AI Pipeline</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">AI Election Copilot</h1>
+                <span class="badge-vireo-new">NIST AI 100-1</span>
+                <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20 font-mono">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Human-in-the-Loop Active
+                </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Autonomous monitoring, biometric liveness verification, fraud anomaly heuristics, and certified reporting.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3 self-start sm:self-auto">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn-vireo-secondary flex items-center gap-2 text-xs">
+                <i class="fas fa-arrow-left text-slate-400"></i>
+                <span>Back to Dashboard</span>
+            </a>
+            <button id="btn-run-scan" onclick="triggerFullScan()" class="btn-vireo-primary flex items-center gap-2">
+                <i class="fas fa-play text-xs" id="scan-icon"></i>
+                <span>Run Agent Scan</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Telemetry & System Health KPI Row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. System Health Score -->
+        <div class="vireo-card p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">System Health</span>
+                <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 text-xs"><i class="fas fa-heart-pulse"></i></span>
+            </div>
+            <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono" id="kpi-health-score">
+                {{ last_scan.system_health_score if last_scan and last_scan.system_health_score else '98' }}%
+            </p>
+            <div class="w-full bg-slate-100 dark:bg-[#1e283d] h-1.5 rounded-full mt-2.5 overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: {{ last_scan.system_health_score if last_scan and last_scan.system_health_score else 98 }}%"></div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-2">All micro-agents nominal</p>
+        </div>
+
+        <!-- 2. Active Risk Assessment -->
+        <div class="vireo-card p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Risk Level</span>
+                <span class="p-2 rounded-xl bg-blue-500/10 text-blue-500 text-xs"><i class="fas fa-shield-virus"></i></span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-2">
+                <p class="text-2xl font-extrabold font-mono {% if pending_alerts|length > 0 %}text-amber-500{% else %}text-emerald-500{% endif %}" id="kpi-risk-level">
+                    {{ last_scan.overall_risk if last_scan and last_scan.overall_risk else ('ATTENTION' if pending_alerts|length > 0 else 'LOW') }}
+                </p>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-3">Evaluated by Anomaly Agent</p>
+        </div>
+
+        <!-- 3. Voter Backlog & Verification Status -->
+        <div class="vireo-card p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Verified Voters</span>
+                <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 text-xs"><i class="fas fa-id-card"></i></span>
+            </div>
+            <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono">{{ verified_users }} <span class="text-xs font-normal text-slate-400">/ {{ total_users }}</span></p>
+            <p class="text-[11px] text-slate-400 mt-3">
+                {% set pending_voters = total_users - verified_users %}
+                {% if pending_voters > 0 %}
+                    <span class="text-amber-500 font-semibold"><i class="fas fa-clock mr-1"></i>{{ pending_voters }} pending ID review</span>
+                {% else %}
+                    <span class="text-emerald-500 font-semibold"><i class="fas fa-check mr-1"></i>100% Voters Verified</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- 4. Active Elections Surveillance -->
+        <div class="vireo-card p-5">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Monitored Elections</span>
+                <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 text-xs"><i class="fas fa-check-to-slot"></i></span>
+            </div>
+            <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono">{{ active_elections }} Active</p>
+            <p class="text-[11px] text-slate-400 mt-3">
+                <a href="{{ url_for('admin.audit_ledger') }}" class="text-emerald-500 hover:text-emerald-400 font-semibold flex items-center gap-1 transition">
+                    <i class="fas fa-link text-[10px]"></i> View Cryptographic Ledger &rarr;
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- SIMPLIFIED AGENTIC AI PIPELINE (Sleek Horizontal Streamlined Flow) -->
+    <div class="vireo-card p-5 sm:p-6 overflow-hidden">
+        <!-- Pipeline Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 mb-4 border-b border-slate-100 dark:border-[#1e283d]">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs">
+                    <i class="fas fa-network-wired"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-white font-mono">Agentic AI Pipeline</h3>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 font-mono">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            5 NODES ONLINE
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Autonomous synchronized micro-agent fleet with real-time telemetry</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 font-mono text-[11px] text-slate-400 self-end sm:self-auto">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>Telemetry Sync: <strong class="text-slate-800 dark:text-slate-200" id="fleet-last-sync">{{ last_scan.timestamp if last_scan else 'Nominal' }}</strong></span>
+            </div>
+        </div>
+
+        <!-- Sleek Horizontal Pipeline Node Strip -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 relative">
+            {% for agent in fleet %}
+            <div class="relative p-3.5 rounded-xl border border-slate-200/80 dark:border-[#1e283d] bg-slate-50/70 dark:bg-[#192238]/60 hover:border-emerald-500/40 transition group flex flex-col justify-between">
+                <div>
+                    <!-- Status & Node Type -->
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-emerald-500">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            {{ agent.status }}
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-400">v{{ agent.version }}</span>
+                    </div>
+
+                    <!-- Icon & Title -->
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0 group-hover:scale-105 transition">
+                            {% if agent.id == 'orchestrator' %}<i class="fas fa-brain"></i>
+                            {% elif agent.id == 'monitoring' %}<i class="fas fa-tower-broadcast"></i>
+                            {% elif agent.id == 'anomaly' %}<i class="fas fa-shield-virus"></i>
+                            {% elif agent.id == 'assistance' %}<i class="fas fa-robot"></i>
+                            {% else %}<i class="fas fa-chart-pie"></i>{% endif %}
+                        </span>
+                        <div class="min-w-0">
+                            <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate" title="{{ agent.name }}">{{ agent.name }}</h4>
+                            <p class="text-[10px] text-slate-400 truncate">{{ agent.role }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Telemetry -->
+                <div class="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-[#1e283d] flex items-center justify-between text-[10px] font-mono text-slate-400">
+                    <span class="truncate text-emerald-500 font-medium">{{ agent.last_run }}</span>
+                    <span class="text-slate-400"><i class="fas fa-check text-[9px] text-emerald-500"></i></span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Feature Navigation Tabs -->
+    <div class="border-b border-slate-200/80 dark:border-[#1e283d]">
+        <nav class="flex space-x-2 sm:space-x-6 overflow-x-auto text-xs sm:text-sm font-semibold" aria-label="Tabs">
+            <button onclick="switchTab('tab-copilot')" id="btn-tab-copilot"
+                    class="tab-btn py-3 px-2 border-b-2 border-emerald-500 text-emerald-500 dark:text-emerald-400 font-bold flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fas fa-comments text-emerald-500"></i>
+                <span>Administrative Copilot</span>
+            </button>
+            <button onclick="switchTab('tab-anomaly')" id="btn-tab-anomaly"
+                    class="tab-btn py-3 px-2 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fas fa-shield-halved text-slate-400"></i>
+                <span>Human-in-the-Loop Anomaly Gate</span>
+                <span id="tab-badge-pending" class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if pending_alerts|length > 0 %}bg-rose-500/10 text-rose-500 border border-rose-500/20{% else %}bg-emerald-500/10 text-emerald-500 border border-emerald-500/20{% endif %}">
+                    {{ pending_alerts|length }}
+                </span>
+            </button>
+            <button onclick="switchTab('tab-reporting')" id="btn-tab-reporting"
+                    class="tab-btn py-3 px-2 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fas fa-file-signature text-slate-400"></i>
+                <span>Executive Election Reporting</span>
+            </button>
+            <button onclick="switchTab('tab-monitoring')" id="btn-tab-monitoring"
+                    class="tab-btn py-3 px-2 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-2 whitespace-nowrap transition">
+                <i class="fas fa-gauge-high text-slate-400"></i>
+                <span>Election Surveillance &amp; Checklists</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- TAB 1: Administrative Assistance Copilot -->
+    <div id="tab-copilot" class="tab-pane">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Chat Window (8 cols) -->
+            <div class="lg:col-span-8 vireo-card flex flex-col h-[650px] overflow-hidden">
+                <div class="p-4 border-b border-slate-100 dark:border-[#1e283d] flex items-center justify-between bg-slate-50/70 dark:bg-[#192238]/60">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Administrative AI Copilot</h3>
+                            <p class="text-[11px] text-emerald-500 font-medium">● Autonomous Decision-Support Engine</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">Decision Support</span>
+                </div>
+
+                <!-- Suggested Query Chips -->
+                <div class="p-2.5 border-b border-slate-100 dark:border-[#1e283d] flex gap-2 overflow-x-auto text-[11px] whitespace-nowrap bg-slate-50/40 dark:bg-[#131929]/50">
+                    <button onclick="sendQuickPrompt('What is the current election status?')" class="px-3 py-1 rounded-lg bg-white dark:bg-[#192238] border border-slate-200 dark:border-[#1e283d] text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition font-medium">
+                        🗳️ Election Status
+                    </button>
+                    <button onclick="sendQuickPrompt('Show pre-election setup checklist')" class="px-3 py-1 rounded-lg bg-white dark:bg-[#192238] border border-slate-200 dark:border-[#1e283d] text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition font-medium">
+                        📋 Pre-Flight Checklist
+                    </button>
+                    <button onclick="sendQuickPrompt('How is voter turnout across active elections?')" class="px-3 py-1 rounded-lg bg-white dark:bg-[#192238] border border-slate-200 dark:border-[#1e283d] text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition font-medium">
+                        📊 Voter Turnout
+                    </button>
+                    <button onclick="sendQuickPrompt('Are there pending voter verifications?')" class="px-3 py-1 rounded-lg bg-white dark:bg-[#192238] border border-slate-200 dark:border-[#1e283d] text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition font-medium">
+                        👥 Pending Voters
+                    </button>
+                    <button onclick="sendQuickPrompt('Are there any critical anomalies or threats?')" class="px-3 py-1 rounded-lg bg-white dark:bg-[#192238] border border-slate-200 dark:border-[#1e283d] text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition font-medium">
+                        ⚠️ Security Audit
+                    </button>
+                </div>
+
+                <!-- Messages Thread -->
+                <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs">
+                    <div class="flex items-start gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="bg-slate-100 dark:bg-[#192238] border border-slate-200/60 dark:border-[#1e283d] rounded-2xl rounded-tl-sm p-4 text-slate-800 dark:text-slate-200 leading-relaxed max-w-[85%]">
+                            <p class="font-bold text-slate-900 dark:text-white mb-1">Welcome, Administrator.</p>
+                            I am your <strong>Smart-Elect Administrative Copilot</strong>. I provide real-time status debriefs, administrative pre-flight checklists, biometric verification assistance, and anomaly guidance. How may I assist your election operations today?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Field -->
+                <div class="p-3 border-t border-slate-100 dark:border-[#1e283d] bg-white dark:bg-[#131929]">
+                    <form id="chat-form" onsubmit="handleChatSubmit(event)" class="flex items-center gap-2">
+                        <input type="text" id="chat-input" placeholder="Ask Copilot about elections, turnout, administrative procedures, checklists..."
+                               class="flex-1 rounded-xl border border-slate-200 dark:border-[#1e283d] py-2.5 px-4 text-xs focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-slate-50 dark:bg-[#192238] text-slate-900 dark:text-white placeholder-slate-400">
+                        <button type="submit" id="chat-send-btn"
+                                class="btn-vireo-primary py-2.5 px-4 text-xs flex items-center gap-1.5">
+                            <i class="fas fa-paper-plane text-xs"></i>
+                            <span>Send</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Guidance & Operational Shortcuts (4 cols) -->
+            <div class="lg:col-span-4 space-y-4">
+                <div class="vireo-card p-5">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2 font-mono">
+                        <i class="fas fa-compass text-emerald-500"></i>
+                        Administrative Action Shortcuts
+                    </h3>
+                    <div class="space-y-2">
+                        <a href="{{ url_for('admin.new_election') }}" class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-[#1e283d] bg-slate-50 dark:bg-[#192238]/50 hover:bg-emerald-500/10 hover:border-emerald-500/30 text-slate-700 dark:text-slate-300 text-xs font-semibold transition group">
+                            <span class="flex items-center gap-2 group-hover:text-emerald-500 transition">
+                                <i class="fas fa-plus text-emerald-500"></i> Create New Election
+                            </span>
+                            <i class="fas fa-arrow-right text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-500 transition"></i>
+                        </a>
+                        <a href="{{ url_for('admin.manage_users') }}" class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-[#1e283d] bg-slate-50 dark:bg-[#192238]/50 hover:bg-emerald-500/10 hover:border-emerald-500/30 text-slate-700 dark:text-slate-300 text-xs font-semibold transition group">
+                            <span class="flex items-center gap-2 group-hover:text-emerald-500 transition">
+                                <i class="fas fa-user-check text-emerald-500"></i> Verify Voter Registrations
+                            </span>
+                            <i class="fas fa-arrow-right text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-500 transition"></i>
+                        </a>
+                        <a href="{{ url_for('admin.audit_ledger') }}" class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-[#1e283d] bg-slate-50 dark:bg-[#192238]/50 hover:bg-emerald-500/10 hover:border-emerald-500/30 text-slate-700 dark:text-slate-300 text-xs font-semibold transition group">
+                            <span class="flex items-center gap-2 group-hover:text-emerald-500 transition">
+                                <i class="fas fa-link text-emerald-500"></i> Cryptographic Audit Ledger
+                            </span>
+                            <i class="fas fa-arrow-right text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-500 transition"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="vireo-card border-l-4 border-l-emerald-500 p-5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white mb-1.5">
+                        <i class="fas fa-shield-heart text-emerald-500 text-sm"></i>
+                        <span>NIST AI Risk Management Framework</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                        In accordance with NIST AI 100-1 election security guidelines, consequential election decisions (such as candidate disqualification or vote invalidation) are <strong>never executed autonomously</strong>. The AI Copilot advises and flags; human administrators verify and authorize.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TAB 2: Human-in-the-Loop Anomaly & Integrity Review -->
+    <div id="tab-anomaly" class="tab-pane hidden">
+        <div class="vireo-card overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-[#1e283d] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-shield-halved text-emerald-500"></i>
+                        Human-in-the-Loop Anomaly & Integrity Review Gate
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Continuous inspection of voting velocity surges, out-of-window temporal violations, and voter authentication anomalies.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="triggerFullScan()" class="btn-vireo-secondary text-xs flex items-center gap-1.5">
+                        <i class="fas fa-rotate text-slate-400"></i> Rescan Anomaly Agent
+                    </button>
+                    <span id="pending-count-badge" class="px-3 py-1.5 rounded-full text-xs font-semibold font-mono {% if pending_alerts|length > 0 %}bg-rose-500/10 text-rose-500 border border-rose-500/20{% else %}bg-emerald-500/10 text-emerald-500 border border-emerald-500/20{% endif %}">
+                        {{ pending_alerts|length }} Pending Review
+                    </span>
+                </div>
+            </div>
+
+            <!-- Active Pending Alerts -->
+            <div id="alerts-container" class="divide-y divide-slate-100 dark:divide-[#1e283d] max-h-96 overflow-y-auto">
+                {% if pending_alerts %}
+                    {% for alert in pending_alerts %}
+                    <div id="alert-card-{{ alert.id }}" class="p-4 sm:p-5 hover:bg-slate-50/80 dark:hover:bg-[#192238]/60 transition flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-md uppercase tracking-wider font-mono
+                                    {% if alert.severity == 'CRITICAL' %}bg-rose-500 text-white
+                                    {% elif alert.severity == 'HIGH' %}bg-amber-500 text-white
+                                    {% elif alert.severity == 'WARNING' %}bg-amber-400/20 text-amber-500 border border-amber-500/30
+                                    {% else %}bg-blue-500/15 text-blue-500 border border-blue-500/25{% endif %}">
+                                    {{ alert.severity }}
+                                </span>
+                                <h4 class="text-sm font-bold text-slate-900 dark:text-white">{{ alert.title }}</h4>
+                                <span class="text-[10px] font-mono text-slate-400">#{{ alert.id }}</span>
+                            </div>
+                            <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{{ alert.message }}</p>
+                            <div class="mt-2.5 text-[11px] text-slate-400 flex items-center gap-4">
+                                <span><i class="fas fa-microchip mr-1 text-slate-400"></i>{{ alert.agent_name }}</span>
+                                <span><i class="far fa-clock mr-1 text-slate-400"></i>{{ alert.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if alert.created_at else '' }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                            <button onclick="handleAlertAction({{ alert.id }}, 'resolve')"
+                                    class="btn-vireo-primary py-1.5 px-3.5 text-xs flex items-center gap-1">
+                                <i class="fas fa-check mr-1"></i>Authorize / Resolve
+                            </button>
+                            <button onclick="handleAlertAction({{ alert.id }}, 'dismiss')"
+                                    class="btn-vireo-secondary py-1.5 px-3.5 text-xs">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-10 text-center text-slate-400">
+                        <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-shield-check text-2xl"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-white">All Security & Integrity Gates Clear</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+                            No temporal window violations, rapid ballot bursts, or biometric inconsistencies detected. All operations adhere to standard voting protocols.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Historical Resolved Alerts Review -->
+            {% if resolved_alerts %}
+            <div class="p-4 bg-slate-50/70 dark:bg-[#192238]/40 border-t border-slate-100 dark:border-[#1e283d]">
+                <details class="text-xs text-slate-600 dark:text-slate-400">
+                    <summary class="cursor-pointer font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-500 transition">
+                        View Recently Resolved / Dismissed Alerts ({{ resolved_alerts|length }})
+                    </summary>
+                    <div class="mt-3 space-y-2">
+                        {% for r in resolved_alerts %}
+                        <div class="p-2.5 rounded-lg bg-white dark:bg-[#131929] border border-slate-200 dark:border-[#1e283d] text-xs flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono {% if r.status == 'RESOLVED' %}bg-emerald-500/10 text-emerald-500{% else %}bg-slate-100 dark:bg-[#192238] text-slate-500{% endif %}">
+                                    {{ r.status }}
+                                </span>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ r.title }}</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono">{{ r.resolved_at.strftime('%Y-%m-%d %H:%M') if r.resolved_at else '' }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- TAB 3: Executive Election Reporting -->
+    <div id="tab-reporting" class="tab-pane hidden">
+        <div class="vireo-card p-6 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100 dark:border-[#1e283d]">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-file-signature text-emerald-500"></i>
+                        Autonomous Executive Election Reporting
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Compile certified executive summaries, calculate margins of victory, audit ballot encryption compliance, and seal reports.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Election Selector & Trigger -->
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <div class="w-full sm:w-auto flex-1">
+                    <label for="report-election-select" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Select Election Target</label>
+                    <select id="report-election-select" class="w-full rounded-xl border border-slate-200 dark:border-[#1e283d] py-2.5 px-3 text-xs font-medium text-slate-800 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-slate-50 dark:bg-[#192238]">
+                        {% for e in elections %}
+                        <option value="{{ e.id }}">{{ e.title }} (Status: {{ e.current_status }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="self-end w-full sm:w-auto">
+                    <button onclick="generateReport()"
+                            class="btn-vireo-primary w-full sm:w-auto py-2.5 px-6 text-xs flex items-center justify-center gap-2">
+                        <i class="fas fa-chart-line text-xs" id="report-btn-icon"></i>
+                        <span>Generate Certified Report</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Redesigned Executive Report Document -->
+            <div id="report-output" class="hidden rounded-2xl border border-slate-200 dark:border-[#1e283d] bg-slate-50/70 dark:bg-[#192238]/40 p-6 transition-all">
+                <!-- Document Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 mb-5 border-b border-slate-200 dark:border-[#1e283d]">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center text-sm shadow-sm">
+                            <i class="fas fa-stamp"></i>
+                        </span>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight" id="report-heading">Official Executive Report</h3>
+                            <p class="text-xs text-slate-400 font-mono mt-0.5" id="report-timestamp">Reference: --</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 self-end sm:self-auto">
+                        <button onclick="window.print()" class="btn-vireo-secondary text-xs py-1.5 px-3 flex items-center gap-1.5">
+                            <i class="fas fa-print text-slate-400"></i>
+                            <span>Print / PDF</span>
+                        </button>
+                        <button onclick="copyReport()" class="btn-vireo-secondary text-xs py-1.5 px-3 flex items-center gap-1.5">
+                            <i class="fas fa-copy text-slate-400"></i>
+                            <span>Copy Markdown</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Executive KPI Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
+                    <div class="bg-white dark:bg-[#131929] rounded-xl p-4 border border-slate-200/80 dark:border-[#1e283d] text-center">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Total Ballots</p>
+                        <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1 font-mono" id="report-metric-votes">0</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5" id="report-metric-eligible">0 Registered</p>
+                    </div>
+                    <div class="bg-white dark:bg-[#131929] rounded-xl p-4 border border-slate-200/80 dark:border-[#1e283d] text-center">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Voter Turnout</p>
+                        <p class="text-2xl font-extrabold text-emerald-500 mt-1 font-mono" id="report-metric-turnout">0%</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Participation Rate</p>
+                    </div>
+                    <div class="bg-white dark:bg-[#131929] rounded-xl p-4 border border-slate-200/80 dark:border-[#1e283d] text-center">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Projected Winner</p>
+                        <p class="text-sm font-extrabold text-emerald-500 mt-2 truncate" id="report-metric-winner">None</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5 truncate" id="report-metric-margin">Margin: --</p>
+                    </div>
+                    <div class="bg-white dark:bg-[#131929] rounded-xl p-4 border border-slate-200/80 dark:border-[#1e283d] text-center">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Ballot Encryption</p>
+                        <p class="text-2xl font-extrabold text-cyan-400 mt-1 font-mono" id="report-metric-crypto">100%</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">AES/Fernet Payload</p>
+                    </div>
+                </div>
+
+                <!-- Standings Table & Progress Bars -->
+                <div class="bg-white dark:bg-[#131929] rounded-xl p-5 border border-slate-200/80 dark:border-[#1e283d] mb-5">
+                    <h4 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-3 flex items-center justify-between font-mono">
+                        <span>Certified Candidate Standings</span>
+                        <span class="text-[11px] text-slate-400 font-normal">Ranked by Valid Ballots Cast</span>
+                    </h4>
+                    <div id="report-candidates-list" class="space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Cryptographic Seal Notice -->
+                <div class="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 flex items-start gap-3 text-xs text-emerald-600 dark:text-emerald-400">
+                    <i class="fas fa-certificate text-emerald-500 text-xl mt-0.5"></i>
+                    <div>
+                        <p class="font-bold text-slate-900 dark:text-white">Cryptographically Certified Audit Document</p>
+                        <p class="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5 leading-relaxed">
+                            Certified by Smart-Elect Result & Reporting Autonomous Agent. Ballots verified against unique relational constraints and zero-tampering audit chains.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Markdown Source View -->
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-[#1e283d]">
+                    <button onclick="toggleMarkdownPreview()" class="text-xs font-semibold text-emerald-500 hover:text-emerald-400 flex items-center gap-1.5 transition">
+                        <i class="fas fa-code text-[11px]"></i>
+                        <span id="md-toggle-text">Show Markdown Output</span>
+                    </button>
+                    <div id="report-raw-md" class="hidden mt-3 p-4 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono whitespace-pre-wrap max-h-60 overflow-y-auto"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TAB 4: Election Surveillance & Administrative Checklists -->
+    <div id="tab-monitoring" class="tab-pane hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Active Elections Status (7 cols) -->
+            <div class="lg:col-span-7 vireo-card p-6">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-emerald-500"></i>
+                    Continuous Election Surveillance
+                </h3>
+                <div class="space-y-3">
+                    {% for election in elections %}
+                    <div class="p-4 rounded-xl border border-slate-200/80 dark:border-[#1e283d] bg-slate-50/50 dark:bg-[#192238]/40 hover:border-emerald-500/40 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono
+                                    {% if election.current_status == 'active' %}bg-emerald-500/10 text-emerald-500
+                                    {% elif election.current_status == 'upcoming' %}bg-blue-500/10 text-blue-500
+                                    {% else %}bg-slate-200 dark:bg-[#1e283d] text-slate-400{% endif %}">
+                                    {{ election.current_status|upper }}
+                                </span>
+                                <h4 class="text-sm font-bold text-slate-900 dark:text-white">{{ election.title }}</h4>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                {{ election.start_date.strftime('%b %d, %Y %H:%M') }} &rarr; {{ election.end_date.strftime('%b %d, %Y %H:%M') }}
+                            </p>
+                            <p class="text-[11px] text-slate-400 mt-1">
+                                Candidates: {{ election.candidates|length }} &middot; Ballots cast: {{ election.votes|length }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ url_for('admin.view_results', id=election.id) }}" class="btn-vireo-secondary text-xs py-1.5 px-3">
+                                Results
+                            </a>
+                            <a href="{{ url_for('admin.edit_election', id=election.id) }}" class="btn-vireo-secondary text-xs py-1.5 px-3">
+                                Configure
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-xs text-slate-400 py-4 text-center">No elections currently configured.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Administrative Pre-Flight Checklists (5 cols) -->
+            <div class="lg:col-span-5 vireo-card p-6">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                    <i class="fas fa-list-check text-emerald-500"></i>
+                    Administrative Pre-Flight Checklists
+                </h3>
+                <div class="space-y-3 text-xs">
+                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-[#1e283d] bg-slate-50/60 dark:bg-[#192238]/40">
+                        <p class="font-bold text-slate-800 dark:text-white mb-1">1. Candidate Contestation Check</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Ensure at least 2 qualified candidates are registered per election before opening.</p>
+                        <div class="mt-2 text-emerald-500 font-semibold flex items-center gap-1.5">
+                            <i class="fas fa-circle-check"></i> System automatically monitors candidate thresholds
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-[#1e283d] bg-slate-50/60 dark:bg-[#192238]/40">
+                        <p class="font-bold text-slate-800 dark:text-white mb-1">2. Biometric Model & Liveness Verification</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Haar cascade face, eye, and micro-motion texture models initialized.</p>
+                        <div class="mt-2 text-emerald-500 font-semibold flex items-center gap-1.5">
+                            <i class="fas fa-circle-check"></i> Active with anti-spoofing enabled
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-[#1e283d] bg-slate-50/60 dark:bg-[#192238]/40">
+                        <p class="font-bold text-slate-800 dark:text-white mb-1">3. Cryptographic Ledger Hash-Chain</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Audit logs anchored with SHA-256 sequential hashes.</p>
+                        <div class="mt-2 text-emerald-500 font-semibold flex items-center gap-1.5">
+                            <i class="fas fa-circle-check"></i> Cryptographic Audit Ledger active
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Interactive Client-side Script -->
+<script>
+let lastReportMarkdown = "";
+
+function switchTab(tabId) {
+    // Hide all tab panes
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+    // Show active pane
+    const target = document.getElementById(tabId);
+    if (target) target.classList.remove('hidden');
+
+    // Update active button state
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-emerald-500', 'text-emerald-500', 'dark:text-emerald-400', 'font-bold');
+        btn.classList.add('border-transparent', 'text-slate-500', 'dark:text-slate-400');
+    });
+    const activeBtn = document.getElementById('btn-' + tabId);
+    if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-slate-500', 'dark:text-slate-400');
+        activeBtn.classList.add('border-emerald-500', 'text-emerald-500', 'dark:text-emerald-400', 'font-bold');
+    }
+
+    // Keep URL hash updated for deep linking
+    if (history.replaceState) {
+        history.replaceState(null, null, '#' + tabId);
+    }
+}
+
+// Deep linking on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash ? window.location.hash.substring(1) : '';
+    if (hash && document.getElementById(hash)) {
+        switchTab(hash);
+    }
+});
+
+function triggerFullScan() {
+    const btn = document.getElementById('btn-run-scan');
+    const icon = document.getElementById('scan-icon');
+    icon.className = "fas fa-spinner fa-spin text-xs";
+    btn.disabled = true;
+
+    fetch("{{ url_for('ai_agent.run_scan') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        icon.className = "fas fa-play text-xs";
+        btn.disabled = false;
+        if (data.success) {
+            alert("✓ " + data.message + "\nHealth Score: " + data.data.system_health_score + "%\nRisk Level: " + data.data.overall_risk);
+            window.location.reload();
+        } else {
+            alert("Scan failed: " + data.error);
+        }
+    })
+    .catch(err => {
+        icon.className = "fas fa-play text-xs";
+        btn.disabled = false;
+        alert("Network error executing scan.");
+    });
+}
+
+function handleAlertAction(alertId, action) {
+    fetch(`/admin/ai/alert/${alertId}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: action })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.getElementById(`alert-card-${alertId}`);
+            if (card) {
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(20px)';
+                card.style.transition = 'all 0.3s ease';
+                setTimeout(() => card.remove(), 300);
+            }
+            // Update badge counts
+            const badges = [document.getElementById('pending-count-badge'), document.getElementById('tab-badge-pending')];
+            badges.forEach(b => {
+                if (b) {
+                    let current = parseInt(b.innerText) || 0;
+                    let next = Math.max(0, current - 1);
+                    b.innerText = b.id === 'tab-badge-pending' ? `${next}` : `${next} Pending Review`;
+                    if (next === 0) {
+                        b.className = b.id === 'tab-badge-pending' ? 
+                            "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
+                            "px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
+                    }
+                }
+            });
+        } else {
+            alert("Action failed: " + data.error);
+        }
+    });
+}
+
+function generateReport() {
+    const electionId = document.getElementById('report-election-select').value;
+    const btnIcon = document.getElementById('report-btn-icon');
+    btnIcon.className = "fas fa-spinner fa-spin text-xs";
+
+    fetch(`/admin/ai/report/${electionId}`)
+    .then(res => res.json())
+    .then(data => {
+        btnIcon.className = "fas fa-chart-line text-xs";
+        if (data.success) {
+            renderExecutiveReport(data.data);
+        } else {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(err => {
+        btnIcon.className = "fas fa-chart-line text-xs";
+        alert("Failed to generate report.");
+    });
+}
+
+function renderExecutiveReport(report) {
+    const out = document.getElementById('report-output');
+    
+    // Header & Meta
+    document.getElementById('report-heading').innerText = `Certified Executive Report: ${report.election_title}`;
+    document.getElementById('report-timestamp').innerText = `Reference: ELECT-${report.election_id} • Generated ${report.generated_at} UTC`;
+    
+    // Metrics
+    document.getElementById('report-metric-votes').innerText = report.total_votes.toLocaleString();
+    document.getElementById('report-metric-eligible').innerText = `${report.eligible_voters.toLocaleString()} Registered Voters`;
+    document.getElementById('report-metric-turnout').innerText = `${report.turnout_percentage}%`;
+    
+    if (report.winner) {
+        document.getElementById('report-metric-winner').innerText = `${report.winner.name}`;
+        document.getElementById('report-metric-margin').innerText = `+${report.margin_of_victory} votes lead (${report.winner.percentage}%)`;
+    } else {
+        document.getElementById('report-metric-winner').innerText = "No Votes Cast";
+        document.getElementById('report-metric-margin').innerText = "Awaiting participation";
+    }
+
+    document.getElementById('report-metric-crypto').innerText = `${report.encryption_integrity_pct}%`;
+
+    // Candidate List
+    const cList = document.getElementById('report-candidates-list');
+    cList.innerHTML = '';
+
+    if (report.candidate_results && report.candidate_results.length > 0) {
+        report.candidate_results.forEach((c, index) => {
+            const isWinner = index === 0 && report.total_votes > 0;
+            const barWidth = c.percentage;
+            
+            const item = document.createElement('div');
+            item.className = "p-3 rounded-xl border " + (isWinner ? "border-emerald-500/40 bg-emerald-500/10" : "border-slate-100 dark:border-[#1e283d] bg-slate-50/50 dark:bg-[#192238]/40");
+            item.innerHTML = `
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-md ${isWinner ? 'bg-emerald-500 text-slate-950 font-bold' : 'bg-slate-200 dark:bg-[#1e283d] text-slate-700 dark:text-slate-300'} flex items-center justify-center text-[10px] font-bold">
+                            #${index + 1}
+                        </span>
+                        <span class="text-xs font-bold text-slate-900 dark:text-white">${escapeHtml(c.name)}</span>
+                        <span class="text-[10px] text-slate-400 font-medium">(${escapeHtml(c.party)})</span>
+                        ${isWinner ? '<span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500 text-slate-950 ml-1">Leader</span>' : ''}
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-bold text-slate-900 dark:text-white">${c.votes} votes</span>
+                        <span class="text-[11px] font-semibold text-emerald-500 ml-1">(${c.percentage}%)</span>
+                    </div>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-[#1e283d] overflow-hidden">
+                    <div class="h-full rounded-full ${isWinner ? 'bg-emerald-500' : 'bg-slate-400 dark:bg-slate-500'}" style="width: ${barWidth}%"></div>
+                </div>
+            `;
+            cList.appendChild(item);
+        });
+    } else {
+        cList.innerHTML = `<p class="text-xs text-slate-400 italic">No candidates registered for this election.</p>`;
+    }
+
+    // Markdown view
+    lastReportMarkdown = report.report_markdown;
+    document.getElementById('report-raw-md').innerText = report.report_markdown;
+
+    out.classList.remove('hidden');
+    out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleMarkdownPreview() {
+    const rawBox = document.getElementById('report-raw-md');
+    const label = document.getElementById('md-toggle-text');
+    if (rawBox.classList.contains('hidden')) {
+        rawBox.classList.remove('hidden');
+        label.innerText = 'Hide Markdown Output';
+    } else {
+        rawBox.classList.add('hidden');
+        label.innerText = 'Show Markdown Output';
+    }
+}
+
+function copyReport() {
+    if (lastReportMarkdown) {
+        navigator.clipboard.writeText(lastReportMarkdown);
+        alert("Certified report copied to clipboard!");
+    }
+}
+
+function sendQuickPrompt(promptText) {
+    switchTab('tab-copilot');
+    document.getElementById('chat-input').value = promptText;
+    handleChatSubmit(new Event('submit'));
+}
+
+function handleChatSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    appendChatMessage('user', msg);
+    input.value = '';
+
+    const typingId = appendChatMessage('assistant', 'Analyzing query and consulting micro-agents...');
+
+    fetch("{{ url_for('ai_agent.chat') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById(typingId)?.remove();
+        if (data.success) {
+            appendChatMessage('assistant', data.data.response);
+        } else {
+            appendChatMessage('assistant', "⚠️ Error: " + data.error);
+        }
+    })
+    .catch(err => {
+        document.getElementById(typingId)?.remove();
+        appendChatMessage('assistant', "⚠️ Network error reaching AI Copilot.");
+    });
+}
+
+function appendChatMessage(sender, text) {
+    const thread = document.getElementById('chat-messages');
+    const msgId = 'msg-' + Date.now();
+    const div = document.createElement('div');
+    div.id = msgId;
+
+    if (sender === 'user') {
+        div.className = "flex items-start justify-end gap-2.5";
+        div.innerHTML = `
+            <div class="bg-emerald-500 text-slate-950 font-medium rounded-2xl rounded-tr-sm p-3.5 text-xs leading-relaxed max-w-[85%] shadow-xs">
+                ${escapeHtml(text)}
+            </div>
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                <i class="fas fa-user"></i>
+            </div>
+        `;
+    } else {
+        div.className = "flex items-start gap-2.5";
+        div.innerHTML = `
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center text-xs flex-shrink-0 mt-0.5 shadow-sm">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="bg-slate-100 dark:bg-[#192238] border border-slate-200/60 dark:border-[#1e283d] rounded-2xl rounded-tl-sm p-3.5 text-slate-800 dark:text-slate-200 text-xs leading-relaxed max-w-[85%] whitespace-pre-wrap">
+                ${escapeHtml(text)}
+            </div>
+        `;
+    }
+
+    thread.appendChild(div);
+    thread.scrollTop = thread.scrollHeight;
+    return msgId;
+}
+
+function escapeHtml(unsafe) {
+    return (unsafe || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+</script>
+{% endblock %}

@@ -33,6 +33,10 @@ class FaceRecognitionSystem:
             self.face_cascade = cv2.CascadeClassifier(cascade_path)
             if self.face_cascade.empty():
                 raise ValueError("Failed to load face cascade classifier")
+
+            # Initialize eye cascade for biometric liveness & blink detection
+            eye_cascade_path = cv2.data.haarcascades + 'haarcascade_eye.xml'
+            self.eye_cascade = cv2.CascadeClassifier(eye_cascade_path)
             
             # Initialize LBPH Face Recognizer
             self.recognizer = cv2.face.LBPHFaceRecognizer_create()
@@ -246,3 +250,78 @@ class FaceRecognitionSystem:
         
         # Combine scores (70% size, 30% centering)
         return 0.7 * size_score + 0.3 * center_score
+
+    def check_liveness(self, frame: np.ndarray, prev_frame: Optional[np.ndarray] = None) -> dict:
+        """
+        Evaluate biometric liveness and anti-spoofing indicators (Section 7).
+        - Texture frequency & Laplacian sharpness check (detects printed paper blur or screen moire).
+        - Eye pair detection and openness.
+        - Natural micro-motion variance between frames (detects static 2D photos).
+        """
+        try:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+            
+            if len(faces) == 0:
+                return {'is_live': False, 'score': 0.0, 'status': 'NO_FACE', 'message': 'No face detected in camera.'}
+            if len(faces) > 1:
+                return {'is_live': False, 'score': 0.0, 'status': 'MULTIPLE_FACES', 'message': 'Multiple faces detected in frame.'}
+            
+            x, y, w, h = faces[0]
+            face_roi_gray = gray[y:y+h, x:x+w]
+            
+            # 1. Texture & Focus Check (Laplacian Variance)
+            laplacian_var = cv2.Laplacian(face_roi_gray, cv2.CV_64F).var()
+            texture_pass = laplacian_var > 55.0
+            
+            # 2. Eye Detection in Upper Face Region
+            upper_face = face_roi_gray[0:int(h*0.6), :]
+            eyes = self.eye_cascade.detectMultiScale(upper_face, scaleFactor=1.1, minNeighbors=3, minSize=(15, 15))
+            eyes_detected = len(eyes) >= 1
+            
+            # 3. Dynamic Micro-Motion Check (if previous frame provided)
+            motion_pass = True
+            motion_diff = 0.0
+            if prev_frame is not None:
+                prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
+                diff = cv2.absdiff(gray, prev_gray)
+                motion_diff = float(np.mean(diff))
+                if motion_diff < 0.15:
+                    motion_pass = False  # Static picture held up
+            
+            # Compute composite liveness score (0.0 to 1.0)
+            score = 0.0
+            if texture_pass:
+                score += 0.45
+            if eyes_detected:
+                score += 0.35
+            if motion_pass:
+                score += 0.20
+                
+            is_live = score >= 0.6
+            
+            return {
+                'is_live': is_live,
+                'score': round(score, 2),
+                'laplacian_variance': round(laplacian_var, 1),
+                'eyes_found': len(eyes),
+                'motion_diff': round(motion_diff, 2),
+                'status': 'PASS' if is_live else 'SUSPECTED_SPOOF',
+                'message': 'Genuine biometric presence confirmed.' if is_live else 'Liveness check failed: possible photo or screen playback.'
+            }
+        except Exception as e:
+            logger.error(f"Error evaluating biometric liveness: {e}")
+            return {'is_live': False, 'score': 0.0, 'status': 'ERROR', 'message': str(e)}
+
+    def verify_face_with_liveness(self, image1: np.ndarray, image2: np.ndarray, 
+                                  prev_image: Optional[np.ndarray] = None) -> Tuple[bool, float, dict]:
+        """
+        Verify face identity while enforcing active anti-spoofing and liveness validation.
+        """
+        liveness_result = self.check_liveness(image2, prev_image)
+        if not liveness_result['is_live']:
+            logger.warning(f"Spoof detected during face verification: {liveness_result['message']}")
+            return False, 0.0, liveness_result
+
+        is_match, similarity = self.verify_face(image1, image2)
+        return is_match, similarity, liveness_result

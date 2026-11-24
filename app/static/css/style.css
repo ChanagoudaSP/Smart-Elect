@@ -1,154 +1,249 @@
-/* General Styles */
+/* ==========================================================================
+   VIREO ENTERPRISE DESIGN SYSTEM (Precise Dark & Light Replicon)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --vireo-font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --vireo-mono: 'JetBrains Mono', monospace;
+
+    /* Light Theme (Screenshot 2: Clean Porcelain & Mint Accents) */
+    --v-bg-base: #f8fafc;
+    --v-bg-sidebar: #ffffff;
+    --v-bg-card: #ffffff;
+    --v-bg-card-subtle: #f1f5f9;
+    --v-bg-input: #f1f5f9;
+    --v-border-subtle: #e2e8f0;
+    --v-border-card: #edf2f7;
+
+    --v-text-primary: #0f172a;
+    --v-text-secondary: #64748b;
+    --v-text-muted: #94a3b8;
+
+    /* Signature Vireo Mint Teal Accent */
+    --v-accent-mint: #10b981;
+    --v-accent-mint-bg: #ecfdf5;
+    --v-accent-mint-hover: #059669;
+    --v-accent-mint-glow: rgba(16, 185, 129, 0.25);
+
+    --v-shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+}
+
+/* Dark Theme (Screenshot 1: Deep Charcoal Slate & Glowing Mint) */
+html.dark {
+    --v-bg-base: #0b0f19;
+    --v-bg-sidebar: #0f1422;
+    --v-bg-card: #131929;
+    --v-bg-card-subtle: #192238;
+    --v-bg-input: #171f33;
+    --v-border-subtle: #1e293b;
+    --v-border-card: #1e283d;
+
+    --v-text-primary: #f8fafc;
+    --v-text-secondary: #94a3b8;
+    --v-text-muted: #64748b;
+
+    /* Signature Vireo Dark Mint Accent */
+    --v-accent-mint: #34d399;
+    --v-accent-mint-bg: rgba(52, 211, 153, 0.12);
+    --v-accent-mint-hover: #10b981;
+    --v-accent-mint-glow: rgba(52, 211, 153, 0.35);
+
+    --v-shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.04);
+}
 
 body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(120deg, #f8fafc 0%, #e3e9f7 100%);
+    font-family: var(--vireo-font) !important;
+    background-color: var(--v-bg-base) !important;
+    color: var(--v-text-primary) !important;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    color: #22223b;
+    margin: 0;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-.footer {
-    margin-top: auto;
+/* Vireo Card Container */
+.vireo-card {
+    background-color: var(--v-bg-card) !important;
+    border: 1px solid var(--v-border-card) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: var(--v-shadow-card) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-/* Camera Styles */
-#camera-container {
+.vireo-card:hover {
+    border-color: rgba(52, 211, 153, 0.4) !important;
+}
+
+/* Vireo Action Quick Action Squares (Screenshot 1: Storefront) */
+.vireo-quick-action {
+    background-color: var(--v-bg-card-subtle);
+    border: 1px solid var(--v-border-subtle);
+    border-radius: 1rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--v-text-primary);
+}
+
+.vireo-quick-action:hover {
+    border-color: var(--v-accent-mint);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px var(--v-accent-mint-glow);
+}
+
+/* Vireo Primary Button (Mint Green with Soft Glow) */
+.btn-vireo-primary {
+    background-color: var(--v-accent-mint) !important;
+    color: #06241b !important;
+    font-weight: 700 !important;
+    border-radius: 0.85rem !important;
+    padding: 0.65rem 1.25rem !important;
+    box-shadow: 0 4px 14px var(--v-accent-mint-glow) !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-vireo-primary:hover {
+    background-color: var(--v-accent-mint-hover) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--v-accent-mint-glow) !important;
+}
+
+/* Vireo Secondary Pill Buttons */
+.btn-vireo-secondary {
+    background-color: var(--v-bg-card) !important;
+    border: 1px solid var(--v-border-subtle) !important;
+    color: var(--v-text-primary) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-vireo-secondary:hover {
+    background-color: var(--v-bg-card-subtle) !important;
+    border-color: var(--v-text-muted) !important;
+}
+
+/* Vireo Circular Progress Target (Screenshot 1: 68% Monthly target) */
+.vireo-progress-ring {
+    transform: rotate(-90deg);
+}
+
+.vireo-progress-ring-circle {
+    stroke-dasharray: 283;
+    stroke-dashoffset: calc(283 - (283 * 68) / 100);
+    transition: stroke-dashoffset 0.8s ease-in-out;
+}
+
+/* Vireo Sidebar Active Pill Indicator */
+.vireo-nav-item {
     position: relative;
-    width: 100%;
-    max-width: 640px;
-    margin: 0 auto;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
+    border-radius: 0.75rem;
+    color: var(--v-text-secondary);
+    transition: all 0.15s ease;
 }
 
-#video {
-    width: 100%;
-    height: auto;
-    background-color: #f8f9fa;
+.vireo-nav-item:hover {
+    color: var(--v-text-primary);
+    background-color: var(--v-bg-card-subtle);
 }
 
-/* Card Styles */
+.vireo-nav-item.active {
+    color: var(--v-text-primary) !important;
+    background-color: var(--v-accent-mint-bg) !important;
+    font-weight: 700;
+}
 
-.card {
-    box-shadow: 0 4px 24px rgba(58, 123, 213, 0.08), 0 1.5px 4px rgba(0,0,0,0.04);
+.vireo-nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.5px;
+    height: 18px;
+    background-color: var(--v-accent-mint);
+    border-radius: 0 4px 4px 0;
+}
+
+/* Vireo Search Input (Top bar Pill) */
+.vireo-search-pill {
+    background-color: var(--v-bg-input);
+    border: 1px solid var(--v-border-subtle);
     border-radius: 1rem;
-    border: none;
-    transition: box-shadow 0.2s, transform 0.2s;
+    color: var(--v-text-primary);
+    transition: all 0.2s ease;
 }
 
-.card:hover {
-    box-shadow: 0 8px 32px rgba(58, 123, 213, 0.16), 0 3px 8px rgba(0,0,0,0.08);
-    transform: translateY(-2px) scale(1.01);
+.vireo-search-pill:focus-within {
+    border-color: var(--v-accent-mint);
+    box-shadow: 0 0 0 3px var(--v-accent-mint-bg);
 }
 
-.card-header {
-    background: linear-gradient(90deg, #3a7bd5 0%, #00d2ff 100%);
-    color: #fff;
-    border-bottom: none;
-    border-radius: 1rem 1rem 0 0;
+/* Vireo Badges */
+.badge-vireo-hot {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
 }
 
-/* Election Cards */
-.election-card {
-    transition: transform 0.2s;
+.badge-vireo-new {
+    background-color: var(--v-accent-mint-bg);
+    color: var(--v-accent-mint);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
 }
 
-.election-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* Generic Overrides for Complete Coverage */
+html.dark .bg-white {
+    background-color: var(--v-bg-card) !important;
+    border-color: var(--v-border-card) !important;
 }
 
-/* Candidate Cards */
-.candidate-card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
+html.dark .bg-slate-50,
+html.dark .bg-gray-50 {
+    background-color: var(--v-bg-card-subtle) !important;
 }
 
-.candidate-photo {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
+html.dark .text-slate-900,
+html.dark .text-gray-900 {
+    color: var(--v-text-primary) !important;
 }
 
-/* Admin Dashboard */
-.stats-card {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white;
+html.dark .text-slate-800,
+html.dark .text-gray-800 {
+    color: #e2e8f0 !important;
 }
 
-.stats-card .card-body {
-    padding: 1.5rem;
+html.dark .text-slate-500,
+html.dark .text-gray-500 {
+    color: var(--v-text-secondary) !important;
 }
 
-.stats-number {
-    font-size: 2rem;
-    font-weight: bold;
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-gray-100,
+html.dark .border-gray-200 {
+    border-color: var(--v-border-card) !important;
 }
 
-/* Buttons */
-
-.btn-vote, .btn-primary, .btn-info, .btn-success, .btn-secondary, .btn-warning, .btn-danger {
-    border-radius: 2rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(58, 123, 213, 0.08);
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+html.dark input,
+html.dark select,
+html.dark textarea {
+    background-color: var(--v-bg-input) !important;
+    color: var(--v-text-primary) !important;
+    border-color: var(--v-border-card) !important;
 }
-
-/* User menu dropdown — opens on click only (never on hover) */
-#user-menu {
-    display: none;
-}
-#user-menu.is-open {
-    display: block;
-}
-
-.btn-primary {
-    background: linear-gradient(90deg, #3a7bd5 0%, #00d2ff 100%);
-    border: none;
-}
-.btn-primary:hover, .btn-primary:focus {
-    background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-    color: #fff;
-}
-
-
-/* Results */
-.progress {
-    height: 22px;
-    background: #e3e9f7;
-    border-radius: 1rem;
-    overflow: hidden;
-}
-
-.progress-bar {
-    background: linear-gradient(90deg, #3a7bd5 0%, #00d2ff 100%);
-    color: #fff;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: width 0.6s cubic-bezier(.4,2,.6,1);
-    border-radius: 1rem;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .container {
-        padding: 0 10px;
-    }
-    .card {
-        margin-bottom: 1.5rem;
-    }
-    .stats-card {
-        margin-bottom: 1.5rem;
-    }
-    .navbar-brand {
-        font-size: 1.2rem !important;
-    }
-    .footer {
-        font-size: 0.95rem;
-    }
-} 

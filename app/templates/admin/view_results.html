@@ -3,128 +3,156 @@
 {% block title %}Election Results - {{ election.title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <!-- Top Breadcrumb & Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <a href="{{ url_for('admin.manage_elections') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                <i class="fas fa-arrow-left mr-1"></i> Manage Elections
-            </a>
-            <h1 class="mt-1 text-3xl font-bold text-gray-900">Election Results</h1>
-            <p class="mt-1 text-sm text-gray-500">{{ election.title }}</p>
+            <div class="flex items-center gap-2 text-xs text-slate-400 font-medium mb-1">
+                <a href="{{ url_for('admin.dashboard') }}" class="hover:text-emerald-500 transition">Command Center</a>
+                <span>&gt;</span>
+                <a href="{{ url_for('admin.manage_elections') }}" class="hover:text-emerald-500 transition">Manage Elections</a>
+                <span>&gt;</span>
+                <span>Election Results</span>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Election Results</h1>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">{{ election.title }}</p>
         </div>
-        <div class="flex items-center gap-2">
+
+        <div class="flex items-center gap-3 self-start sm:self-auto">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn-vireo-secondary flex items-center gap-2 text-xs">
+                <i class="fas fa-arrow-left text-slate-400"></i>
+                <span>Admin Dashboard</span>
+            </a>
             {% if election.is_currently_active %}
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live
             </span>
             {% else %}
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">Closed</span>
+            <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20">Concluded</span>
             {% endif %}
-            <a href="{{ url_for('admin.download_results', id=election.id, format='csv') }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md transition">
-                <i class="fas fa-download"></i> Download CSV
+            <a href="{{ url_for('admin.download_results', id=election.id, format='csv') }}" class="btn-vireo-primary text-xs">
+                <i class="fas fa-download text-xs"></i>
+                <span>Download CSV</span>
             </a>
         </div>
     </div>
 
-    <!-- Summary table -->
-    <div class="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden mb-6">
-        <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-900">Results Summary</h2>
+    <!-- Results Summary Card (Vireo Aesthetic) -->
+    <div class="vireo-card overflow-hidden">
+        <div class="p-6 border-b border-slate-100 dark:border-[#1e283d] flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Results Summary</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tabulated tally of certified votes by candidate</p>
+            </div>
+            <span class="text-xs font-mono text-slate-400">{{ total_votes }} total votes</span>
         </div>
+
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Rank</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Candidate</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Party</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Votes</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Percentage</th>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-100 dark:border-[#1e283d] text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50 dark:bg-[#131929]/50">
+                        <th class="px-6 py-3.5">Rank</th>
+                        <th class="px-6 py-3.5">Candidate</th>
+                        <th class="px-6 py-3.5">Party</th>
+                        <th class="px-6 py-3.5">Votes</th>
+                        <th class="px-6 py-3.5">Percentage</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-slate-100 dark:divide-[#1e283d] text-xs">
                     {% for result in results %}
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-5 py-4">
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-[#192238]/50 transition">
+                        <td class="px-6 py-4">
                             {% if loop.first and result.votes > 0 %}
-                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-amber-700 text-sm font-bold">
-                                <i class="fas fa-trophy text-xs"></i>
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-amber-500/15 text-amber-500 border border-amber-500/30 text-xs font-bold">
+                                <i class="fas fa-trophy"></i>
                             </span>
                             {% else %}
-                            <span class="text-sm text-gray-500 font-medium">{{ loop.index }}</span>
+                            <span class="text-xs font-mono font-bold text-slate-400">{{ loop.index }}</span>
                             {% endif %}
                         </td>
-                        <td class="px-5 py-4 text-sm font-semibold text-gray-900">{{ result.candidate.name }}</td>
-                        <td class="px-5 py-4 text-sm text-gray-600">{{ result.candidate.party }}</td>
-                        <td class="px-5 py-4 text-sm font-semibold text-gray-900">{{ result.votes }}</td>
-                        <td class="px-5 py-4">
+                        <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">
+                            {{ result.candidate.name }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 dark:text-slate-400 font-medium">
+                            {{ result.candidate.party }}
+                        </td>
+                        <td class="px-6 py-4 font-mono font-bold text-slate-900 dark:text-white">
+                            {{ result.votes }}
+                        </td>
+                        <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-24 h-2 rounded-full bg-gray-100 overflow-hidden">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
+                                <div class="w-32 h-2 rounded-full bg-slate-100 dark:bg-[#1e283d] overflow-hidden">
+                                    <div class="h-full rounded-full bg-emerald-500 transition-all duration-700"
                                          style="width: {{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
                                 </div>
-                                <span class="text-sm text-gray-600">{{ '%.1f'|format(result.percentage|default(0)) }}%</span>
+                                <span class="font-mono text-xs font-bold text-slate-900 dark:text-white">{{ '%.1f'|format(result.percentage|default(0)) }}%</span>
                             </div>
                         </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-slate-400">No votes recorded yet for this election.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <div class="px-5 py-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Votes Cast</p>
-                <p class="mt-1 font-semibold text-gray-900">{{ total_votes }}</p>
+
+        <!-- Metric Footer Strip -->
+        <div class="p-6 border-t border-slate-100 dark:border-[#1e283d] grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+            <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-[#192238]/40 border border-slate-100 dark:border-[#1e283d]">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Votes Cast</span>
+                <span class="text-sm font-bold text-slate-900 dark:text-white mt-0.5 block">{{ total_votes }}</span>
             </div>
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Election Period</p>
-                <p class="mt-1 font-semibold text-gray-900">{{ election.start_date.strftime('%Y-%m-%d %H:%M') }} &rarr; {{ election.end_date.strftime('%Y-%m-%d %H:%M') }}</p>
+            <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-[#192238]/40 border border-slate-100 dark:border-[#1e283d]">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Election Period</span>
+                <span class="text-xs font-bold text-slate-900 dark:text-white mt-0.5 block">{{ election.start_date.strftime('%Y-%m-%d %H:%M') }} &rarr; {{ election.end_date.strftime('%Y-%m-%d %H:%M') }}</span>
             </div>
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</p>
-                <p class="mt-1 font-semibold text-gray-900">{% if election.is_currently_active %}Active (Live Results){% else %}Closed{% endif %}</p>
+            <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-[#192238]/40 border border-slate-100 dark:border-[#1e283d]">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Status</span>
+                <span class="text-xs font-bold text-emerald-500 mt-0.5 block">{% if election.is_currently_active %}Active (Live Results){% else %}Concluded{% endif %}</span>
             </div>
         </div>
     </div>
 
-    <!-- Analysis cards -->
+    <!-- Candidate Result Cards -->
     {% if results %}
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Result Analysis</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for result in results %}
-        <div class="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-            <div class="relative h-40 bg-gray-100">
-                <img src="{{ result.candidate.photo_url }}" alt="{{ result.candidate.name }}"
-                     class="w-full h-full object-cover"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <div class="hidden w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white items-center justify-center text-4xl font-bold">
-                    {{ result.candidate.name[0]|upper }}
-                </div>
-                {% if loop.first and result.votes > 0 %}
-                <span class="absolute top-3 right-3 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-400 text-amber-900 shadow">
-                    <i class="fas fa-trophy mr-1"></i> Leading
-                </span>
-                {% endif %}
-            </div>
-            <div class="p-5">
-                <h3 class="text-base font-semibold text-gray-900">{{ result.candidate.name }}</h3>
-                <p class="text-sm text-gray-600">{{ result.candidate.party }}</p>
-                <div class="mt-4">
-                    <div class="flex justify-between text-sm mb-1.5">
-                        <span class="font-semibold text-gray-900">{{ '%.1f'|format(result.percentage|default(0)) }}%</span>
-                        <span class="text-gray-500">{{ result.votes }} vote{{ 's' if result.votes != 1 }}</span>
+    <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Candidate Performance Breakdown</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for result in results %}
+            <div class="vireo-card overflow-hidden hover:border-emerald-500/40 transition">
+                <div class="relative h-44 bg-slate-100 dark:bg-[#192238]">
+                    <img src="{{ result.candidate.photo_url }}" alt="{{ result.candidate.name }}"
+                         class="w-full h-full object-cover"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="hidden w-full h-full bg-emerald-500/10 text-emerald-500 border-b border-emerald-500/20 items-center justify-center text-4xl font-extrabold">
+                        {{ result.candidate.name[0]|upper }}
                     </div>
-                    <div class="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div class="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
-                             style="width: {{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
+                    {% if loop.first and result.votes > 0 %}
+                    <span class="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-400 text-slate-900 shadow">
+                        <i class="fas fa-trophy text-[10px]"></i> Leading
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="p-5">
+                    <h4 class="text-base font-bold text-slate-900 dark:text-white">{{ result.candidate.name }}</h4>
+                    <p class="text-xs text-emerald-500 font-medium mt-0.5">{{ result.candidate.party }}</p>
+                    <div class="mt-4">
+                        <div class="flex justify-between text-xs font-mono mb-1.5">
+                            <span class="font-bold text-slate-900 dark:text-white">{{ '%.1f'|format(result.percentage|default(0)) }}%</span>
+                            <span class="text-slate-400">{{ result.votes }} vote{{ 's' if result.votes != 1 }}</span>
+                        </div>
+                        <div class="h-2 rounded-full bg-slate-100 dark:bg-[#1e283d] overflow-hidden">
+                            <div class="h-full rounded-full bg-emerald-500"
+                                 style="width: {{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     {% endif %}
 
