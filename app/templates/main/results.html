@@ -13,13 +13,16 @@
                 <span>&gt;</span>
                 <a href="{{ url_for('main.elections') }}" class="hover:text-emerald-500 transition">Elections</a>
                 <span>&gt;</span>
-                <a href="{{ url_for('main.election_detail', id=election.id) }}" class="hover:text-emerald-500 transition">{{ election.title }}</a>
+                <a href="{{ url_for('main.election_detail', id=election.id) }}"
+                    class="hover:text-emerald-500 transition">{{ election.title }}</a>
                 <span>&gt;</span>
                 <span>Results</span>
             </div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{{ election.title }} <span class="font-normal text-slate-400">Results</span></h1>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{{ election.title }} <span
+                    class="font-normal text-slate-400">Results</span></h1>
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Total ballots cast: <strong class="text-slate-900 dark:text-white font-mono">{{ total_votes }}</strong> &middot;
+                Total ballots cast: <strong class="text-slate-900 dark:text-white font-mono">{{ total_votes }}</strong>
+                &middot;
                 Updated <span class="font-mono">{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span>
             </p>
         </div>
@@ -30,11 +33,14 @@
                 <span>Elections</span>
             </a>
             {% if election.end_date > now %}
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                <i class="fas fa-spinner fa-spin text-xs"></i> Preliminary &middot; ends in {{ ((election.end_date - now).total_seconds()/3600)|round|int }}h
+            <span
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                <i class="fas fa-spinner fa-spin text-xs"></i> Preliminary &middot; ends in {{ ((election.end_date -
+                now).total_seconds()/3600)|round|int }}h
             </span>
             {% else %}
-            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20">
+            <span
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20">
                 <i class="fas fa-check-circle text-xs"></i> Final Certified
             </span>
             {% endif %}
@@ -47,13 +53,15 @@
         <div class="vireo-card overflow-hidden hover:border-emerald-500/40 transition">
             <div class="relative h-44 bg-slate-100 dark:bg-[#192238]">
                 <img src="{{ result.candidate.photo_url }}" alt="{{ result.candidate.name }}"
-                     class="w-full h-full object-cover"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <div class="hidden w-full h-full bg-emerald-500/10 text-emerald-500 border-b border-emerald-500/20 items-center justify-center text-4xl font-extrabold">
+                    class="w-full h-full object-cover"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div
+                    class="hidden w-full h-full bg-emerald-500/10 text-emerald-500 border-b border-emerald-500/20 items-center justify-center text-4xl font-extrabold">
                     {{ result.candidate.name[0]|upper }}
                 </div>
                 {% if loop.first and result.votes > 0 %}
-                <span class="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-400 text-slate-900 shadow">
+                <span
+                    class="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-400 text-slate-900 shadow">
                     <i class="fas fa-trophy text-[10px]"></i> Leading
                 </span>
                 {% endif %}
@@ -63,12 +71,13 @@
                 <p class="text-xs text-emerald-500 font-medium mt-0.5">{{ result.candidate.party }}</p>
                 <div class="mt-4">
                     <div class="flex justify-between text-xs font-mono mb-1.5">
-                        <span class="font-bold text-slate-900 dark:text-white">{{ '%.1f'|format(result.percentage|default(0)) }}%</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{
+                            '%.1f'|format(result.percentage|default(0)) }}%</span>
                         <span class="text-slate-400">{{ result.votes }} vote{{ 's' if result.votes != 1 }}</span>
                     </div>
                     <div class="h-2 rounded-full bg-slate-100 dark:bg-[#1e283d] overflow-hidden">
                         <div class="result-bar h-full rounded-full bg-emerald-500 transition-all duration-1000"
-                             style="width: 0%" data-width="{{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
+                            style="width: 0%" data-width="{{ '%.1f'|format(result.percentage|default(0)) }}%"></div>
                     </div>
                 </div>
             </div>
@@ -77,7 +86,8 @@
     </div>
     {% else %}
     <div class="vireo-card p-12 text-center">
-        <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#192238] text-slate-400 flex items-center justify-center text-2xl mx-auto mb-3">
+        <div
+            class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#192238] text-slate-400 flex items-center justify-center text-2xl mx-auto mb-3">
             <i class="fas fa-chart-bar"></i>
         </div>
         <h2 class="text-base font-bold text-slate-900 dark:text-white mb-1">No Results Yet</h2>
@@ -91,10 +101,10 @@
 {% block scripts %}
 {{ super() }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.result-bar').forEach(bar => {
-        requestAnimationFrame(() => { bar.style.width = bar.dataset.width; });
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.result-bar').forEach(bar => {
+            requestAnimationFrame(() => { bar.style.width = bar.dataset.width; });
+        });
     });
-});
 </script>
 {% endblock %}
