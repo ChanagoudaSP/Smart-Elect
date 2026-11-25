@@ -1,16 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>New Election Notification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Election Announcement</title>
 </head>
-<body style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px;">
-  <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 24px;">
-    <h2 style="color: #185a9d;">Hello {{ user.first_name }},</h2>
-    <p style="font-size: 16px; color: #333;">A new election <b>"{{ election.title }}"</b> has been created on Smart-Elect.</p>
-    <p style="font-size: 15px; color: #555;">Log in to your account to view details and participate.</p>
-    <hr style="margin: 24px 0;">
-    <p style="font-size: 13px; color: #888;">Thank you for being a part of Smart-Elect.<br>Smart-Elect Team</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #0b1120; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b1120; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #131929; border: 1px solid #1e283d; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);">
+          
+          <!-- Top Accent Bar -->
+          <tr>
+            <td height="4" style="background: linear-gradient(90deg, #10b981 0%, #34d399 100%);"></td>
+          </tr>
+
+          <!-- Header Section -->
+          <tr>
+            <td style="padding: 32px 32px 16px 32px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td>
+                    <span style="display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #10b981; background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 9999px;">
+                      ● Official Election Announcement
+                    </span>
+                    <h1 style="margin: 16px 0 6px 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
+                      Smart-Elect Voting Portal
+                    </h1>
+                    <p style="margin: 0; font-size: 14px; color: #94a3b8;">
+                      {% if is_admin_copy %}
+                        Admin Broadcast Confirmation
+                      {% else %}
+                        Hello <strong>{{ user.first_name if user and user.first_name else 'Voter' }}</strong>, a new election has been scheduled.
+                      {% endif %}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Election Details Card -->
+          <tr>
+            <td style="padding: 8px 32px 24px 32px;">
+              <div style="background-color: #192238; border: 1px solid #1e283d; border-radius: 12px; padding: 24px;">
+                <h2 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: #34d399;">
+                  {{ election.title }}
+                </h2>
+                {% if election.description %}
+                <p style="margin: 0 0 20px 0; font-size: 13px; line-height: 1.5; color: #94a3b8;">
+                  {{ election.description }}
+                </p>
+                {% endif %}
+
+                <!-- Meta Table -->
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #243049; color: #94a3b8;">Start Time</td>
+                    <td align="right" style="padding: 10px 0; border-top: 1px solid #243049; font-weight: 700; color: #ffffff; font-family: monospace;">
+                      {{ election.start_date.strftime('%Y-%m-%d %I:%M %p') }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #243049; color: #94a3b8;">End Time</td>
+                    <td align="right" style="padding: 10px 0; border-top: 1px solid #243049; font-weight: 700; color: #ffffff; font-family: monospace;">
+                      {{ election.end_date.strftime('%Y-%m-%d %I:%M %p') }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #243049; color: #94a3b8;">Duration</td>
+                    <td align="right" style="padding: 10px 0; border-top: 1px solid #243049; font-weight: 700; color: #10b981; font-family: monospace;">
+                      {{ election.formatted_duration }}
+                    </td>
+                  </tr>
+                  {% if is_admin_copy and voter_count is defined %}
+                  <tr>
+                    <td style="padding: 10px 0; border-top: 1px solid #243049; color: #94a3b8;">Notified Voters</td>
+                    <td align="right" style="padding: 10px 0; border-top: 1px solid #243049; font-weight: 700; color: #38bdf8; font-family: monospace;">
+                      {{ voter_count }} Verified Voters
+                    </td>
+                  </tr>
+                  {% endif %}
+                </table>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Call to Action Button -->
+          <tr>
+            <td align="center" style="padding: 8px 32px 32px 32px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="border-radius: 10px; background-color: #10b981;">
+                    <a href="http://127.0.0.1:5000/auth/login" target="_blank" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 700; color: #0b1120; text-decoration: none; border-radius: 10px;">
+                      Login to Smart-Elect Portal &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 16px 0 0 0; font-size: 11px; color: #64748b; line-height: 1.5;">
+                Biometric Face Authentication &amp; SHA-256 Hash-Chained Audit Ledger Active.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 32px; background-color: #0e1424; border-top: 1px solid #1e283d; text-align: center; font-size: 11px; color: #64748b;">
+              Smart-Elect &bull; NIST AI 100-1 Compliant Autonomous Election Administration Platform<br>
+              This is an automated notification. Please do not reply directly to this email.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>

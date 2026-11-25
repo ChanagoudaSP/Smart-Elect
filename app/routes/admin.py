@@ -7,6 +7,7 @@ from flask_mail import Message
 from app.models.models import User, Election, Vote, Candidate, AIAlert
 from app.models.query import Query
 from app.utils.time_utils import convert_to_24hr, convert_to_12hr, get_date_string
+from app.utils.email_notifications import notify_new_election
 from datetime import datetime
 from functools import wraps
 import csv
@@ -174,37 +175,12 @@ def new_election():
             
             flash(f'Election "{title}" created successfully. Duration: {election.formatted_duration}', 'success')
 
-            # Notify all registered users via HTML email, sent from admin (chanagoudasp374@gmail.com)
+            # Broadcast announcement email & in-app notifications to all verified voters
             try:
-                users = User.query.filter_by(is_verified=True).all()
-                for user in users:
-                    msg = Message(
-                        'New Election Announcement',
-                        recipients=[user.email],
-                        sender='chanagoudasp374@gmail.com',
-                        html=render_template(
-                            'email/new_election.html',
-                            user=user,
-                            election=election
-                        )
-                    )
-                    mail.send(msg)
-                # Also send to admin
-                msg_admin = Message(
-                    'New Election Announcement',
-                    recipients=['chanagoudasp374@gmail.com'],
-                    sender='chanagoudasp374@gmail.com',
-                    html=render_template(
-                        'email/new_election.html',
-                        user=None,
-                        election=election
-                    )
-                )
-                mail.send(msg_admin)
+                notify_new_election(election)
             except Exception as e:
-                logger.error(f"Error sending email notifications: {str(e)}")
-                # Continue even if email sending fails
-                
+                logger.error(f"Error triggering election notifications: {str(e)}")
+
             return redirect(url_for('admin.dashboard'))
             
         except Exception as e:
